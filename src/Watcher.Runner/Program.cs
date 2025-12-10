@@ -28,12 +28,13 @@ client.MessageReceived += (message) =>
 
 var channelOption = new SlashCommandOptionBuilder()
     .WithName("channel")
+    .WithDescription("Kanał do obserwowania.")
     .WithType(ApplicationCommandOptionType.Channel)
     .WithRequired(true);
 
 var notificationsCommand = new SlashCommandBuilder()
     .WithName("notify-me")
-    .WithDescription("Wysyła jedno powiadomienie (wiadomość prywatną) kiedy wykryje konkretny rodzaj aktywności na serwerze")
+    .WithDescription("Wysyła jedno powiadomienie kiedy wykryje zwiększony ruch.")
     .AddOption(channelOption)
     .Build();
 
