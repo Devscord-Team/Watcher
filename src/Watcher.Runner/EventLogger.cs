@@ -5,7 +5,7 @@ namespace Watcher.Runner;
 
 public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
 {
-    //private const string EVENT_TEMPLATE = "{Event} @{Payload}";
+    private const string EVENT_TEMPLATE = "{Event} @{Payload}";
     private const string LOG_MESSAGE_TEMPLATE = "{@LogMessage}";
 
     public void LogMessage(LogMessage logMessage)
@@ -23,4 +23,13 @@ public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
 
         logger.Write(level, LOG_MESSAGE_TEMPLATE, logMessage);
     }
+
+    private void Warn<T>(string eventName, T payload)
+        => logger.Warning(EVENT_TEMPLATE, eventName, payload);
+
+    private void Info<T>(string eventName, T payload)
+        => logger.Information(EVENT_TEMPLATE, eventName, payload);
+
+    private void Err<T>(string eventName, T payload)
+        => logger.Error(EVENT_TEMPLATE, eventName, payload);
 }
