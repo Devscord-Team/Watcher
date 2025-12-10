@@ -49,11 +49,6 @@ client.Ready += async () =>
         ])
         .Build();
 
-    foreach (var command in await client.GetGlobalApplicationCommandsAsync())
-    {
-        await command.DeleteAsync();
-    }
-
     foreach (var guild in client.Guilds)
     {
         if (guild.Name != "Devscord")
