@@ -58,13 +58,13 @@ client.Ready += async () =>
         }
 
         var commands = await guild.GetApplicationCommandsAsync();
-        if (commands.Any())
+        if (commands?.Count > 0)
         {
-            await guild.BulkOverwriteApplicationCommandAsync([notificationsCommand]);
+            _ = await guild.BulkOverwriteApplicationCommandAsync([notificationsCommand]);
         }
         else
         {
-            await guild.CreateApplicationCommandAsync(notificationsCommand);
+            _ = await guild.CreateApplicationCommandAsync(notificationsCommand);
         }
     }
 
