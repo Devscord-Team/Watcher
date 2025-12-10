@@ -1,12 +1,10 @@
-﻿using Discord;
+﻿using Autofac;
+using Discord;
 using Discord.WebSocket;
-using Serilog;
-using Serilog.Events;
-using Serilog.Formatting.Json;
+using Watcher.Runner;
 
-var logger = new LoggerConfiguration()
-    .WriteTo.Console(new JsonFormatter(), Serilog.Events.LogEventLevel.Debug)
-    .CreateLogger();
+var container = ContainersFactory.Create();
+var logger = container.Resolve<IEventLogger>();
 
 var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN");
 if (token is null)
@@ -21,20 +19,9 @@ var config = new DiscordSocketConfig
 
 var client = new DiscordSocketClient(config);
 
-client.Log += (logMessage) =>
+client.Log += (x) =>
 {
-    var level = logMessage.Severity switch 
-    {
-        LogSeverity.Critical => LogEventLevel.Fatal,
-        LogSeverity.Error => LogEventLevel.Error,
-        LogSeverity.Warning => LogEventLevel.Warning,
-        LogSeverity.Info => LogEventLevel.Information,
-        LogSeverity.Verbose => LogEventLevel.Verbose,
-        LogSeverity.Debug => LogEventLevel.Debug,
-        _ => throw new NotImplementedException(),
-    };
-
-    logger.Write(level, "{@LogMessage}", logMessage);
+    logger.LogMessage(x);
     return Task.CompletedTask;
 };
 
