@@ -21,10 +21,13 @@ client.Log += (x) =>
     return Task.CompletedTask;
 };
 
-client.MessageReceived += (message) =>
+client.SlashCommandExecuted += (message) =>
 {
-    Console.WriteLine(message.Content);
-    return Task.CompletedTask;
+    var options = message.Data.Options.Select(x => $"{x.Name} {x.Value}").ToArray();
+    Console.WriteLine(message.CommandName);
+    var response = $"Saved. {message.CommandName} | {string.Join(", ", options)}";
+    Console.WriteLine(response);
+    return message.RespondAsync(response);
 };
 
 client.Ready += async () =>
@@ -42,7 +45,28 @@ client.Ready += async () =>
         ])
         .Build();
 
-    await client.BulkOverwriteGlobalApplicationCommandsAsync([notificationsCommand]);
+    foreach (var command in await client.GetGlobalApplicationCommandsAsync())
+    {
+        await command.DeleteAsync();
+    }
+
+    foreach (var guild in client.Guilds)
+    {
+        if (guild.Name != "Devscord")
+        {
+            continue;
+        }
+
+        var commands = await guild.GetApplicationCommandsAsync();
+        if (commands.Any())
+        {
+            await guild.BulkOverwriteApplicationCommandAsync([notificationsCommand]);
+        }
+        else
+        {
+            await guild.CreateApplicationCommandAsync(notificationsCommand);
+        }
+    }
 
     Console.WriteLine("Commands registered!");
 };
