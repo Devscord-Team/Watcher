@@ -1,5 +1,4 @@
-﻿
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 
 var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN");
@@ -27,7 +26,19 @@ client.MessageReceived += (message) =>
     return Task.CompletedTask;
 };
 
+var channelOption = new SlashCommandOptionBuilder()
+    .WithName("channel")
+    .WithType(ApplicationCommandOptionType.Channel)
+    .WithRequired(true);
+
+var notificationsCommand = new SlashCommandBuilder()
+    .WithName("notify-me")
+    .WithDescription("Wysyła jedno powiadomienie (wiadomość prywatną) kiedy wykryje konkretny rodzaj aktywności na serwerze")
+    .AddOption(channelOption)
+    .Build();
+
 await client.LoginAsync(TokenType.Bot, token);
 await client.StartAsync();
+await client.BulkOverwriteGlobalApplicationCommandsAsync([notificationsCommand]);
 
 await Task.Delay(-1);
