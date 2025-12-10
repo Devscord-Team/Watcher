@@ -1,11 +1,17 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Json;
+
+var logger = new LoggerConfiguration()
+    .WriteTo.Console(new JsonFormatter(), Serilog.Events.LogEventLevel.Debug)
+    .CreateLogger();
 
 var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN");
 if (token is null)
 {
-    Console.WriteLine("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
-    return;
+    throw new ArgumentNullException("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
 }
 
 var config = new DiscordSocketConfig
@@ -15,9 +21,20 @@ var config = new DiscordSocketConfig
 
 var client = new DiscordSocketClient(config);
 
-client.Log += (x) =>
+client.Log += (logMessage) =>
 {
-    Console.WriteLine(x.ToString());
+    var level = logMessage.Severity switch 
+    {
+        LogSeverity.Critical => LogEventLevel.Fatal,
+        LogSeverity.Error => LogEventLevel.Error,
+        LogSeverity.Warning => LogEventLevel.Warning,
+        LogSeverity.Info => LogEventLevel.Information,
+        LogSeverity.Verbose => LogEventLevel.Verbose,
+        LogSeverity.Debug => LogEventLevel.Debug,
+        _ => throw new NotImplementedException(),
+    };
+
+    logger.Write(level, "{@LogMessage}", logMessage);
     return Task.CompletedTask;
 };
 
