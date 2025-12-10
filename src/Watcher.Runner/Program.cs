@@ -5,6 +5,7 @@ var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN");
 if (token is null)
 {
     Console.WriteLine("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
+    return;
 }
 
 var config = new DiscordSocketConfig
@@ -26,20 +27,27 @@ client.MessageReceived += (message) =>
     return Task.CompletedTask;
 };
 
-var channelOption = new SlashCommandOptionBuilder()
-    .WithName("channel")
-    .WithDescription("Kanał do obserwowania.")
-    .WithType(ApplicationCommandOptionType.Channel)
-    .WithRequired(true);
+client.Ready += async () =>
+{
+    var notificationsCommand = new SlashCommandBuilder()
+        .WithName("notify-me")
+        .WithDescription("Wysyła jedno powiadomienie kiedy wykryje zwiększony ruch.")
+        .AddOptions(
+        [
+            new SlashCommandOptionBuilder()
+                .WithName("channel")
+                .WithDescription("Kanał do obserwowania.")
+                .WithType(ApplicationCommandOptionType.Channel)
+                .WithRequired(true)
+        ])
+        .Build();
 
-var notificationsCommand = new SlashCommandBuilder()
-    .WithName("notify-me")
-    .WithDescription("Wysyła jedno powiadomienie kiedy wykryje zwiększony ruch.")
-    .AddOption(channelOption)
-    .Build();
+    await client.BulkOverwriteGlobalApplicationCommandsAsync([notificationsCommand]);
+
+    Console.WriteLine("Commands registered!");
+};
 
 await client.LoginAsync(TokenType.Bot, token);
 await client.StartAsync();
-await client.BulkOverwriteGlobalApplicationCommandsAsync([notificationsCommand]);
 
 await Task.Delay(-1);
