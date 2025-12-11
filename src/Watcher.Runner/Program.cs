@@ -5,11 +5,8 @@ using Watcher.Runner;
 var container = ContainersFactory.Create();
 var initializer = container.Resolve<IDiscordInitializer>();
 
-var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN");
-if (token is null)
-{
-    throw new ArgumentNullException("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
-}
+var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN") 
+    ?? throw new ArgumentNullException("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
 
 await initializer.Initialize(token);
 await Task.Delay(-1);
