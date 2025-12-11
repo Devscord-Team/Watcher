@@ -30,8 +30,8 @@ public static class ContainersFactory
 
     private static ContainerBuilder RegisterDiscord(this ContainerBuilder builder)
     {
-        builder.RegisterType<DiscordInitializer>()
-            .As<IDiscordInitializer>()
+        builder.RegisterType<DiscordRunner>()
+            .As<IDiscordRunner>()
             .SingleInstance();
 
         return builder;

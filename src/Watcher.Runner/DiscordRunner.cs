@@ -2,9 +2,9 @@
 using Discord.WebSocket;
 
 namespace Watcher.Runner;
-public class DiscordInitializer(IEventLogger eventLogger) : IDiscordInitializer
+public class DiscordRunner(IEventLogger eventLogger) : IDiscordRunner
 {
-    private bool initialized = false;
+    private bool started = false;
     private static readonly Lock obj = new ();
 
     private readonly DiscordSocketConfig config = new()
@@ -12,16 +12,16 @@ public class DiscordInitializer(IEventLogger eventLogger) : IDiscordInitializer
         GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
     };
 
-    public async Task Initialize(string token)
+    public async Task Run(string token)
     {
-        if (initialized)
+        if (started)
         {
             return;
         }
 
         lock(obj)
         {
-            initialized = true;
+            started = true;
         }
 
         var client = new DiscordSocketClient(config);
