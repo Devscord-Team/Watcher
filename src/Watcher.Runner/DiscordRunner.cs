@@ -78,33 +78,51 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                     }
                 }
 
-                var savedMessages = messagesStorage.GetAllMessagesInfos();
-                foreach (ITextChannel channel in guild.Channels)
+                _ = Task.Run(async () => 
                 {
-                    ulong? lastMessageId = null;
-
-                    while (true)
+                    try
                     {
-                        var batch = lastMessageId.HasValue
-                            ? await channel.GetMessagesAsync(lastMessageId.Value, Direction.Before, 100).FlattenAsync()
-                            : await channel.GetMessagesAsync(100).FlattenAsync();
+                        var savedMessages = messagesStorage.GetAllMessagesInfos();
+                        var botUser = guild.CurrentUser;
 
-                        if (!batch.Any())
+                        foreach (var channel in guild.TextChannels)
                         {
-                            break;
+                            var permissions = botUser.GetPermissions(channel);
+                            if (!permissions.ViewChannel || !permissions.ReadMessageHistory)
+                            {
+                                continue;
+                            }
+
+                            ulong? lastMessageId = null;
+                            while (true)
+                            {
+                                var batch = lastMessageId.HasValue
+                                    ? await channel.GetMessagesAsync(lastMessageId.Value, Direction.Before, 100).FlattenAsync()
+                                    : await channel.GetMessagesAsync(100).FlattenAsync();
+
+                                if (!batch.Any())
+                                {
+                                    break;
+                                }
+
+                                var toSave = batch
+                                    .Where(x => !savedMessages.Any(s => s.MessageId == x.Id))
+                                    .Select(x => x.ToMessageInfo());
+
+                                messagesStorage.SaveMessagesInfos(toSave);
+                                eventLogger.Event_SavedMessagesInfos(guild.Id, channel.Id, toSave.Count());
+
+                                await Task.Delay(500);
+                                lastMessageId = batch.Last().Id;
+                            }
                         }
-
-                        var toSave = batch
-                            .Where(x => savedMessages.Any(s => s.MessageId == x.Id))
-                            .Select(x => x.ToMessageInfo());
-
-                        messagesStorage.SaveMessagesInfos(toSave);
-                        eventLogger.Event_SavedMessagesInfos(guild.Id, channel.Id, toSave.Count());
-
-                        await Task.Delay(500);
-                        lastMessageId = batch.Last().Id;
                     }
-                }
+                    catch (Exception ex)
+                    {
+
+                        throw;
+                    }
+                });
             }
         };
     }
