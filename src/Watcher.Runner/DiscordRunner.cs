@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Discord;
 using Discord.WebSocket;
+using System;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Extensions;
 using Watcher.Runner.Logging;
@@ -78,10 +79,12 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                     }
                 }
 
-                _ = Task.Run(async () => 
+                _ = Task.Run(() =>
                 {
                     var savedMessages = messagesStorage.GetAllMessagesInfos();
                     var botUser = guild.CurrentUser;
+
+                    var tasks = new List<Task>();
 
                     foreach (var channel in guild.TextChannels)
                     {
@@ -91,35 +94,50 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                             continue;
                         }
 
-                        var lastMessageId = savedMessages.Where(x => x.ChannelId == channel.Id)
-                            .OrderBy(x => x.SentAt)
-                            .FirstOrDefault()?.MessageId ?? null;
-
-                        while (true)
-                        {
-                            var batch = lastMessageId.HasValue
-                                ? await channel.GetMessagesAsync(lastMessageId.Value, Direction.Before, 100).FlattenAsync()
-                                : await channel.GetMessagesAsync(100).FlattenAsync();
-
-                            if (!batch.Any())
-                            {
-                                break;
-                            }
-
-                            var toSave = batch
-                                .Where(x => !savedMessages.Any(s => s.MessageId == x.Id))
-                                .Select(x => x.ToMessageInfo());
-
-                            messagesStorage.SaveMessagesInfos(toSave);
-                            eventLogger.Event_SavedMessagesInfos(guild.Id, channel.Id, toSave.Count());
-
-                            await Task.Delay(500);
-                            lastMessageId = batch.Last().Id;
-                        }
+                        var task = this.DownloadChannel(savedMessages, channel);
+                        tasks.Add(task);
                     }
+
+                    Task.WaitAll([.. tasks]);
+                    return Task.CompletedTask;
                 });
             }
         };
+    }
+
+    private async Task DownloadChannel(MessageInfo[] savedMessages, ITextChannel channel)
+    {
+        ulong? lastMessageId = null;
+
+        while (true)
+        {
+            var batch = lastMessageId.HasValue
+                ? await channel.GetMessagesAsync(lastMessageId.Value, Direction.Before, 100).FlattenAsync()
+                : await channel.GetMessagesAsync(100).FlattenAsync();
+
+            if (!batch.Any())
+            {
+                break;
+            }
+
+            var toSave = batch
+                .Where(x => !savedMessages.Any(s => s.MessageId == x.Id))
+                .Select(x => x.ToMessageInfo());
+
+            if (toSave.Any())
+            {
+                messagesStorage.SaveMessagesInfos(toSave);
+                eventLogger.Event_SavedMessagesInfos(channel.GuildId, channel.Id, toSave.Count());
+            }
+            
+            if (batch.OrderByDescending(x => x.Timestamp).First().Timestamp.UtcDateTime < DateTime.UtcNow.AddMonths(-1))
+            {
+                break;
+            }
+
+            await Task.Delay(1000);
+            lastMessageId = batch.Last().Id;
+        }
     }
 
     private ApplicationCommandProperties[] BuildCommands()
