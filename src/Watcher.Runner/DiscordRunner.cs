@@ -3,7 +3,7 @@ using Discord;
 using Discord.WebSocket;
 
 namespace Watcher.Runner;
-public class DiscordRunner(IContainer container) : IDiscordRunner
+public class DiscordRunner(IComponentContext context) : IDiscordRunner
 {
     private bool started = false;
     private static readonly Lock obj = new ();
@@ -37,19 +37,19 @@ public class DiscordRunner(IContainer container) : IDiscordRunner
 
     private void ConfigureLog(DiscordSocketClient client)
     {
-        var handler = container.Resolve<IDiscordEventHandler<LogMessage>>();
+        var handler = context.Resolve<IDiscordEventHandler<LogMessage>>();
         client.Log += handler.Handle;
     }
 
     private void ConfigureMessageReceived(DiscordSocketClient client)
     {
-        var handler = container.Resolve<IDiscordEventHandler<SocketMessage>>();
+        var handler = context.Resolve<IDiscordEventHandler<SocketMessage>>();
         client.MessageReceived += handler.Handle;
     }
 
     private void ConfigureSlashCommandExecuted(DiscordSocketClient client)
     {
-        var handler = container.Resolve<IDiscordEventHandler<SocketSlashCommand>>();
+        var handler = context.Resolve<IDiscordEventHandler<SocketSlashCommand>>();
         client.SlashCommandExecuted += handler.Handle;
     }
 
