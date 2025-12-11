@@ -1,11 +1,10 @@
 ﻿using Discord;
-using Discord.WebSocket;
 
 namespace Watcher.Runner.Extensions;
 
-public static class SocketMessageExtensions
+public static class MessageExtensions
 {
-    public static MessageInfo ToMessageInfo(this SocketMessage message)
+    public static MessageInfo ToMessageInfo(this IMessage message)
     {
         var channel = (IGuildChannel)message.Channel;
         var author = message.Author;

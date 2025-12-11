@@ -37,6 +37,9 @@ public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
     public void Event_ReceivedMessage(MessageInfo statMessageInfo)
         => this.Info(nameof(Event_ReceivedMessage), statMessageInfo);
 
+    public void Event_SavedMessagesInfos(ulong guildId, ulong channelId, int count) 
+        => this.Info(nameof(Event_SavedMessagesInfos), new { GuildId = guildId, ChannelId = channelId, Count = count });
+
     public void Dispose()
         => logger.Dispose();
 

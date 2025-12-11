@@ -2,9 +2,12 @@
 using Discord;
 using Discord.WebSocket;
 using Watcher.Runner.DiscordEventHandlers;
+using Watcher.Runner.Extensions;
+using Watcher.Runner.Logging;
+using Watcher.Runner.Storage;
 
 namespace Watcher.Runner;
-public class DiscordRunner(IComponentContext context) : IDiscordRunner
+public class DiscordRunner(IComponentContext context, IMessagesStorage messagesStorage, IEventLogger eventLogger) : IDiscordRunner
 {
     private bool started = false;
     private static readonly Lock obj = new ();
@@ -72,6 +75,34 @@ public class DiscordRunner(IComponentContext context) : IDiscordRunner
                     foreach (var command in commands)
                     {
                         _ = await guild.CreateApplicationCommandAsync(command);
+                    }
+                }
+
+                var savedMessages = messagesStorage.GetAllMessagesInfos();
+                foreach (ITextChannel channel in guild.Channels)
+                {
+                    ulong? lastMessageId = null;
+
+                    while (true)
+                    {
+                        var batch = lastMessageId.HasValue
+                            ? await channel.GetMessagesAsync(lastMessageId.Value, Direction.Before, 100).FlattenAsync()
+                            : await channel.GetMessagesAsync(100).FlattenAsync();
+
+                        if (!batch.Any())
+                        {
+                            break;
+                        }
+
+                        var toSave = batch
+                            .Where(x => savedMessages.Any(s => s.MessageId == x.Id))
+                            .Select(x => x.ToMessageInfo());
+
+                        messagesStorage.SaveMessagesInfos(toSave);
+                        eventLogger.Event_SavedMessagesInfos(guild.Id, channel.Id, toSave.Count());
+
+                        await Task.Delay(500);
+                        lastMessageId = batch.Last().Id;
                     }
                 }
             }
