@@ -15,13 +15,13 @@ public class DiscordRunner(IComponentContext context) : IDiscordRunner
 
     public async Task Run(string token)
     {
-        if (started)
-        {
-            return;
-        }
-
         lock(obj)
         {
+            if (started)
+            {
+                return;
+            }
+
             started = true;
         }
 
