@@ -2,7 +2,7 @@
 
 namespace Watcher.Runner.Logging;
 
-public interface IEventLogger
+public interface IEventLogger : IDisposable
 {
     void Event_BreakingProgramException(Exception exception);
     void Event_ProgramClosed();

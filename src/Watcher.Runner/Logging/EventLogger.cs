@@ -37,6 +37,9 @@ public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
     public void Event_ReceivedMessage(StatMessageInfo statMessageInfo)
         => this.Info(nameof(Event_ReceivedMessage), statMessageInfo);
 
+    public void Dispose()
+        => logger.Dispose();
+
     private void Warn<T>(string eventName, T payload)
         => logger.Warning(EVENT_TEMPLATE, eventName, payload);
 

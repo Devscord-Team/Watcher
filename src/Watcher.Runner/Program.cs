@@ -2,8 +2,8 @@
 using Watcher.Runner;
 using Watcher.Runner.Logging;
 
-var container = ContainersFactory.Create();
-var eventLogger = container.Resolve<IEventLogger>();
+using var container = ContainersFactory.Create();
+using var eventLogger = container.Resolve<IEventLogger>();
 
 try
 {
