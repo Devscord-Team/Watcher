@@ -10,6 +10,7 @@ public static class ContainersFactory
     {
         return new ContainerBuilder()
             .RegisterLogging()
+            .RegisterDiscord()
             .Build();
     }
 
@@ -22,6 +23,15 @@ public static class ContainersFactory
         var eventLogger = new EventLogger(logger);
         _ = builder.RegisterInstance(eventLogger)
             .As<IEventLogger>()
+            .SingleInstance();
+
+        return builder;
+    }
+
+    private static ContainerBuilder RegisterDiscord(this ContainerBuilder builder)
+    {
+        builder.RegisterType<DiscordInitializer>()
+            .As<IDiscordInitializer>()
             .SingleInstance();
 
         return builder;
