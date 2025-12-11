@@ -1,8 +1,9 @@
-﻿using Discord;
+﻿using Autofac;
+using Discord;
 using Discord.WebSocket;
 
 namespace Watcher.Runner;
-public class DiscordRunner(IEventLogger eventLogger) : IDiscordRunner
+public class DiscordRunner(IContainer container) : IDiscordRunner
 {
     private bool started = false;
     private static readonly Lock obj = new ();
@@ -26,6 +27,7 @@ public class DiscordRunner(IEventLogger eventLogger) : IDiscordRunner
 
         var client = new DiscordSocketClient(config);
         this.ConfigureLog(client);
+        this.ConfigureMessageReceived(client);
         this.ConfigureSlashCommandExecuted(client);
         this.ConfigureReady(client);
 
@@ -35,59 +37,61 @@ public class DiscordRunner(IEventLogger eventLogger) : IDiscordRunner
 
     private void ConfigureLog(DiscordSocketClient client)
     {
-        client.Log += (x) =>
-        {
-            eventLogger.LogMessage(x);
-            return Task.CompletedTask;
-        };
+        var handler = container.Resolve<IDiscordEventHandler<LogMessage>>();
+        client.Log += handler.Handle;
+    }
+
+    private void ConfigureMessageReceived(DiscordSocketClient client)
+    {
+        var handler = container.Resolve<IDiscordEventHandler<SocketMessage>>();
+        client.MessageReceived += handler.Handle;
     }
 
     private void ConfigureSlashCommandExecuted(DiscordSocketClient client)
     {
-        client.SlashCommandExecuted += (message) =>
-        {
-            var options = message.Data.Options.Select(x => $"{x.Name} {x.Value}").ToArray();
-            Console.WriteLine(message.CommandName);
-            var response = $"Saved. {message.CommandName} | {string.Join(", ", options)}";
-            Console.WriteLine(response);
-            return message.RespondAsync(response);
-        };
+        var handler = container.Resolve<IDiscordEventHandler<SocketSlashCommand>>();
+        client.SlashCommandExecuted += handler.Handle;
     }
 
     private void ConfigureReady(DiscordSocketClient client)
     {
+        var commands = this.BuildCommands();
+
         client.Ready += async () =>
         {
-            var notificationsCommand = new SlashCommandBuilder()
-                .WithName("notify-me")
-                .WithDescription("Wysyła jedno powiadomienie kiedy wykryje zwiększony ruch.")
-                .AddOptions(
-                [
-                    new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Kanał do obserwowania.")
-                        .WithType(ApplicationCommandOptionType.Channel)
-                        .WithRequired(true)
-                ])
-                .Build();
-
-            foreach (var guild in client.Guilds)
+            foreach (var guild in client.Guilds.Where(x => x.Name == "Devscord"))
             {
-                if (guild.Name != "Devscord")
+                var guildCommands = await guild.GetApplicationCommandsAsync();
+                if (guildCommands?.Count > 0)
                 {
-                    continue;
-                }
-
-                var commands = await guild.GetApplicationCommandsAsync();
-                if (commands?.Count > 0)
-                {
-                    _ = await guild.BulkOverwriteApplicationCommandAsync([notificationsCommand]);
+                    _ = await guild.BulkOverwriteApplicationCommandAsync(commands);
                 }
                 else
                 {
-                    _ = await guild.CreateApplicationCommandAsync(notificationsCommand);
+                    foreach (var command in commands)
+                    {
+                        _ = await guild.CreateApplicationCommandAsync(command);
+                    }
                 }
             }
         };
+    }
+
+    private ApplicationCommandProperties[] BuildCommands()
+    {
+        var notificationsCommand = new SlashCommandBuilder()
+            .WithName("notify-me")
+            .WithDescription("Wysyła jedno powiadomienie kiedy wykryje zwiększony ruch.")
+            .AddOptions(
+            [
+                new SlashCommandOptionBuilder()
+                    .WithName("channel")
+                    .WithDescription("Kanał do obserwowania.")
+                    .WithType(ApplicationCommandOptionType.Channel)
+                    .WithRequired(true)
+            ])
+            .Build();
+
+        return [notificationsCommand];
     }
 }

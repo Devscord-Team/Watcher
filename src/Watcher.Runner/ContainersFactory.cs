@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Discord.WebSocket;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
@@ -30,8 +31,20 @@ public static class ContainersFactory
 
     private static ContainerBuilder RegisterDiscord(this ContainerBuilder builder)
     {
-        builder.RegisterType<DiscordRunner>()
+        _ = builder.RegisterType<DiscordRunner>()
             .As<IDiscordRunner>()
+            .SingleInstance();
+
+        _ = builder.RegisterType<MessageReceivedHandler>()
+            .As<IDiscordEventHandler<SocketMessage>>()
+            .SingleInstance();
+
+        _ = builder.RegisterType<SlashCommandExecutedHandler>()
+            .As<IDiscordEventHandler<SocketSlashCommand>>()
+            .SingleInstance();
+
+        _ = builder.RegisterType<LogHandler>()
+            .As<IDiscordEventHandler<Discord.LogMessage>>()
             .SingleInstance();
 
         return builder;
