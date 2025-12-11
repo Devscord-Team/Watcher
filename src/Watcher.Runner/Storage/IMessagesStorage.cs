@@ -1,4 +1,4 @@
-﻿namespace Watcher.Runner;
+﻿namespace Watcher.Runner.Storage;
 
 public interface IMessagesStorage
 {

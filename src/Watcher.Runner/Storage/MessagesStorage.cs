@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Watcher.Runner;
+namespace Watcher.Runner.Storage;
 public class MessagesStorage : IMessagesStorage
 {
     private const string MESSAGES_INFO_HISTORY_PATH = "MessagesInfoHistory.json";

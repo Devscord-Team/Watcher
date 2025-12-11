@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Watcher.Runner.Extensions;
 using Watcher.Runner.Logging;
+using Watcher.Runner.Storage;
 
 namespace Watcher.Runner.DiscordEventHandlers;
 public class MessageReceivedHandler(IEventLogger eventLogger, IMessagesStorage messagesStorage) : IDiscordEventHandler<SocketMessage>

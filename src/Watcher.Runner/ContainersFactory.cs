@@ -5,6 +5,7 @@ using Serilog.Events;
 using Serilog.Formatting.Json;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Logging;
+using Watcher.Runner.Storage;
 
 namespace Watcher.Runner;
 public static class ContainersFactory
