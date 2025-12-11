@@ -36,9 +36,7 @@ To wstępny plan. Może się zmienić, może coś wyrzucimy, może dodamy coś z
 
 ## Podejście
 
-To jest projekt hobbystyczny robiony wieczorami przez ludzi z serwera. Nie ma terminów, nie ma sprintów, nie ma nikogo kto pyta o status.
-
-Główny cel to zabawa i eksperymenty. Jeśli coś będzie ciekawe do zbudowania (własny pipeline ML, event sourcing, nietypowa architektura), to to zbudujemy — nawet jeśli istnieje prostsze rozwiązanie. Overengineering jest częścią zabawy.
+Główny cel to zabawa i eksperymenty. Jeśli coś będzie ciekawe do zbudowania (własny pipeline ML, event sourcing, nietypowa architektura, własna baza danych), to to zbudujemy — nawet jeśli istnieje prostsze rozwiązanie. Overengineering jest częścią zabawy.
 
 ## Stack
 
