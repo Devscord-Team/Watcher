@@ -34,7 +34,7 @@ public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
     public void Event_BreakingProgramException(Exception exception)
         => this.Fatal(nameof(Event_BreakingProgramException), exception);
 
-    public void Event_ReceivedMessage(StatMessageInfo statMessageInfo)
+    public void Event_ReceivedMessage(MessageInfo statMessageInfo)
         => this.Info(nameof(Event_ReceivedMessage), statMessageInfo);
 
     public void Dispose()

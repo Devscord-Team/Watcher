@@ -1,0 +1,1 @@
+﻿public record MessageInfo(ulong ServerId, ulong ChannelId, ulong UserId, ulong MessageId, DateTime SentAt);

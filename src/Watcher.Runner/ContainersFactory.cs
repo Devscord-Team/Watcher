@@ -14,6 +14,7 @@ public static class ContainersFactory
         return new ContainerBuilder()
             .RegisterLogging()
             .RegisterDiscord()
+            .RegisterStorage()
             .Build();
     }
 
@@ -47,6 +48,15 @@ public static class ContainersFactory
 
         _ = builder.RegisterType<LogHandler>()
             .As<IDiscordEventHandler<Discord.LogMessage>>()
+            .SingleInstance();
+
+        return builder;
+    }
+
+    private static ContainerBuilder RegisterStorage(this ContainerBuilder builder)
+    {
+        _ = builder.RegisterType<MessagesStorage>()
+            .As<IMessagesStorage>()
             .SingleInstance();
 
         return builder;
