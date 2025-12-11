@@ -5,13 +5,17 @@ namespace Watcher.Runner.Storage;
 public class MessagesStorage : IMessagesStorage
 {
     private const string MESSAGES_INFO_HISTORY_PATH = "MessagesInfoHistory.json";
+    private static readonly Lock obj = new ();
 
     public void SaveMessageInfo(MessageInfo message)
     {
         var json = JsonConvert.SerializeObject(message);
         var content = json + ",\r\n";
 
-        File.AppendAllText(MESSAGES_INFO_HISTORY_PATH, content);
+        lock (obj)
+        {
+            File.AppendAllText(MESSAGES_INFO_HISTORY_PATH, content);
+        }
     }
 
     public void SaveMessagesInfos(IEnumerable<MessageInfo> messages)
@@ -24,7 +28,10 @@ public class MessagesStorage : IMessagesStorage
             fullText.Append(content);
         }
 
-        File.AppendAllText(MESSAGES_INFO_HISTORY_PATH, fullText.ToString());
+        lock (obj)
+        {
+            File.AppendAllText(MESSAGES_INFO_HISTORY_PATH, fullText.ToString());
+        }
     }
 
     public MessageInfo[] GetAllMessagesInfos()
