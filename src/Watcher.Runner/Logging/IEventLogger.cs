@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Watcher.Runner;
+namespace Watcher.Runner.Logging;
 
 public interface IEventLogger
 {

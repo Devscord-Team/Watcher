@@ -3,6 +3,8 @@ using Discord.WebSocket;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
+using Watcher.Runner.DiscordEventHandlers;
+using Watcher.Runner.Logging;
 
 namespace Watcher.Runner;
 public static class ContainersFactory

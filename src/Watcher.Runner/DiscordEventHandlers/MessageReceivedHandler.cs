@@ -1,7 +1,9 @@
 ﻿using Discord.WebSocket;
 using Newtonsoft.Json;
+using Watcher.Runner.Extensions;
+using Watcher.Runner.Logging;
 
-namespace Watcher.Runner;
+namespace Watcher.Runner.DiscordEventHandlers;
 public class MessageReceivedHandler(IEventLogger eventLogger) : IDiscordEventHandler<SocketMessage>
 {
     public async Task Handle(SocketMessage message)

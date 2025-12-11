@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Serilog.Events;
 
-namespace Watcher.Runner;
+namespace Watcher.Runner.Logging;
 
 public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
 {

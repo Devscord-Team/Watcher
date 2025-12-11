@@ -1,4 +1,4 @@
-﻿namespace Watcher.Runner;
+﻿namespace Watcher.Runner.DiscordEventHandlers;
 
 public interface IDiscordEventHandler<T>
 {

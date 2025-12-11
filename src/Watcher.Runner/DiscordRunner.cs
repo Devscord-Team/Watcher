@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Discord;
 using Discord.WebSocket;
+using Watcher.Runner.DiscordEventHandlers;
 
 namespace Watcher.Runner;
 public class DiscordRunner(IComponentContext context) : IDiscordRunner

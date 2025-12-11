@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 
-namespace Watcher.Runner;
+namespace Watcher.Runner.DiscordEventHandlers;
 
 public class SlashCommandExecutedHandler : IDiscordEventHandler<SocketSlashCommand>
 {

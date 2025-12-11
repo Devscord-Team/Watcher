@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 
-namespace Watcher.Runner;
+namespace Watcher.Runner.Extensions;
 
 public static class SocketMessageExtensions
 {

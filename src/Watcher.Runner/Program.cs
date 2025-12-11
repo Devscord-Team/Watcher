@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Watcher.Runner;
+using Watcher.Runner.Logging;
 
 var container = ContainersFactory.Create();
 var eventLogger = container.Resolve<IEventLogger>();
