@@ -5,10 +5,11 @@ using System;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Extensions;
 using Watcher.Runner.Logging;
+using Watcher.Runner.Providers;
 using Watcher.Runner.Storage;
 
 namespace Watcher.Runner;
-public class DiscordRunner(IComponentContext context, IMessagesStorage messagesStorage, IEventLogger eventLogger) : IDiscordRunner
+public class DiscordRunner(IComponentContext context, IMessagesStorage messagesStorage, IEventLogger eventLogger, IDateTimeProvider dateTimeProvider) : IDiscordRunner
 {
     private bool started = false;
     private static readonly Lock obj = new ();
@@ -130,7 +131,7 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                 eventLogger.Event_SavedMessagesInfos(channel.GuildId, channel.Id, toSave.Count());
             }
             
-            if (batch.OrderByDescending(x => x.Timestamp).First().Timestamp.UtcDateTime < DateTime.UtcNow.AddMonths(-1))
+            if (batch.OrderByDescending(x => x.Timestamp).First().Timestamp.UtcDateTime < dateTimeProvider.GetUtcNow().AddMonths(-1))
             {
                 break;
             }

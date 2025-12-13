@@ -1,9 +1,10 @@
 ﻿using Watcher.Runner.Logging;
+using Watcher.Runner.Providers;
 using Watcher.Runner.Storage;
 
 namespace Watcher.Runner;
 
-public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger) : IAnomalyDetector
+public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger, IDateTimeProvider dateTimeProvider) : IAnomalyDetector
 {
     private Dictionary<StatKey, ChannelStats>? statsCache;
     private DateTime? lastRefreshTime;
@@ -24,7 +25,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger)
     {
         lock (this.cacheLock)
         {
-            if (lastRefreshTime.HasValue && lastRefreshTime.Value > DateTime.Now.AddHours(-1))
+            if (lastRefreshTime.HasValue && lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
             {
                 return;
             }
@@ -45,7 +46,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger)
                 .ToDictionary(entry => entry.Key, entry => entry.Stats!);
 
             this.statsCache = newStatsCache;
-            this.lastRefreshTime = DateTime.Now;
+            this.lastRefreshTime = dateTimeProvider.GetUtcNow();
 
 
             eventLogger.Event_AnomalyDetectorCacheRefreshFinished();
@@ -210,7 +211,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger)
     }
 
     private DateTime GetCurrentTime()
-        => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, this.cestTimezone);
+        => TimeZoneInfo.ConvertTimeFromUtc(dateTimeProvider.GetUtcNow(), this.cestTimezone);
 
     private int GetChannelMessages(ulong channelId, DateTime startDate)
     {
