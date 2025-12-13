@@ -8,7 +8,7 @@ public static class MessageExtensions
     {
         var channel = (IGuildChannel)message.Channel;
         var author = message.Author;
-        var messageInfo = new MessageInfo(channel.GuildId, channel.Id, author.Id, message.Id, message.Timestamp.DateTime);
+        var messageInfo = new MessageInfo(channel.GuildId, channel.Id, author.Id, message.Id, message.Timestamp.UtcDateTime);
         return messageInfo;
     }
 }
