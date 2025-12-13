@@ -5,6 +5,7 @@ using Serilog.Events;
 using Serilog.Formatting.Json;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Logging;
+using Watcher.Runner.Providers;
 using Watcher.Runner.Storage;
 
 namespace Watcher.Runner;
@@ -16,6 +17,8 @@ public static class ContainersFactory
             .RegisterLogging()
             .RegisterDiscord()
             .RegisterStorage()
+            .RegisterProviders()
+            .RegisterAnomalyDetection()
             .Build();
     }
 
@@ -58,6 +61,24 @@ public static class ContainersFactory
     {
         _ = builder.RegisterType<MessagesStorage>()
             .As<IMessagesStorage>()
+            .SingleInstance();
+
+        return builder;
+    }
+
+    private static ContainerBuilder RegisterProviders(this ContainerBuilder builder)
+    {
+        _ = builder.RegisterType<DateTimeProvider>()
+            .As<IDateTimeProvider>()
+            .SingleInstance();
+
+        return builder;
+    }
+
+    private static ContainerBuilder RegisterAnomalyDetection(this ContainerBuilder builder)
+    {
+        _ = builder.RegisterType<AnomalyDetector>()
+            .As<IAnomalyDetector>()
             .SingleInstance();
 
         return builder;

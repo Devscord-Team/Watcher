@@ -4,6 +4,10 @@ namespace Watcher.Runner.Logging;
 
 public interface IEventLogger : IDisposable
 {
+    void Event_AnomalyDetectorCacheRefreshFinished();
+    void Event_AnomalyDetectorCacheRefreshStarted();
+    void Event_AnomalyDetectorScanChannelFinished(ulong channelId, AnomalyResult? result);
+    void Event_AnomalyDetectorScanChannelStarted(ulong channelId);
     void Event_BreakingProgramException(Exception exception);
     void Event_ProgramClosed();
     void Event_ProgramStarted();

@@ -40,6 +40,18 @@ public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
     public void Event_SavedMessagesInfos(ulong guildId, ulong channelId, int count) 
         => this.Info(nameof(Event_SavedMessagesInfos), new { GuildId = guildId, ChannelId = channelId, Count = count });
 
+    public void Event_AnomalyDetectorCacheRefreshFinished()
+        => this.Info(nameof(Event_AnomalyDetectorCacheRefreshFinished));
+
+    public void Event_AnomalyDetectorCacheRefreshStarted()
+        => this.Info(nameof(Event_AnomalyDetectorCacheRefreshStarted));
+
+    public void Event_AnomalyDetectorScanChannelFinished(ulong channelId, AnomalyResult? result)
+        => this.Info(nameof(Event_AnomalyDetectorScanChannelFinished), new { ChannelId = channelId, Result = result });
+
+    public void Event_AnomalyDetectorScanChannelStarted(ulong channelId)
+        => this.Info(nameof(Event_AnomalyDetectorScanChannelStarted), new { ChannelId = channelId });
+
     public void Dispose()
         => logger.Dispose();
 

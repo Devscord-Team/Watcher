@@ -1,8 +1,9 @@
-﻿using Watcher.Runner.Storage;
+﻿using Watcher.Runner.Logging;
+using Watcher.Runner.Storage;
 
 namespace Watcher.Runner;
 
-public class AnomalyDetector(IMessagesStorage storage)
+public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger) : IAnomalyDetector
 {
     private Dictionary<StatKey, ChannelStats>? statsCache;
     private DateTime? lastRefreshTime;
@@ -28,6 +29,8 @@ public class AnomalyDetector(IMessagesStorage storage)
                 return;
             }
 
+            eventLogger.Event_AnomalyDetectorCacheRefreshStarted();
+
             var freshMessages = storage.GetAllMessagesInfos();
             var now = this.GetCurrentTime();
 
@@ -43,6 +46,9 @@ public class AnomalyDetector(IMessagesStorage storage)
 
             this.statsCache = newStatsCache;
             this.lastRefreshTime = DateTime.Now;
+
+
+            eventLogger.Event_AnomalyDetectorCacheRefreshFinished();
         }
 
         await Task.CompletedTask;
@@ -50,6 +56,8 @@ public class AnomalyDetector(IMessagesStorage storage)
 
     public AnomalyResult? ScanChannel(ulong channelId)
     {
+        eventLogger.Event_AnomalyDetectorScanChannelStarted(channelId);
+
         var now = this.GetCurrentTime();
         var timeSlot = this.RoundToTimeSlot(now);
         var key = new StatKey(channelId, now.DayOfWeek, timeSlot);
@@ -67,9 +75,12 @@ public class AnomalyDetector(IMessagesStorage storage)
 
         var currentCount = this.GetCurrentMessageCount(channelId, now);
 
-        return this.IsAnomaly(currentCount, stats)
+        var result = this.IsAnomaly(currentCount, stats)
             ? new AnomalyResult(channelId, now, currentCount, stats.Average)
             : null;
+
+        eventLogger.Event_AnomalyDetectorScanChannelFinished(channelId, result);
+        return result;
     }
 
     public async Task ForceRefreshCache()
@@ -198,7 +209,7 @@ public class AnomalyDetector(IMessagesStorage storage)
         return new TimeOnly(dateTime.Hour, minute);
     }
 
-    private DateTime GetCurrentTime() 
+    private DateTime GetCurrentTime()
         => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, this.cestTimezone);
 
     private int GetChannelMessages(ulong channelId, DateTime startDate)
