@@ -1,10 +1,12 @@
 ﻿using Discord;
+using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Watcher.Runner.Domain.AnomalyDetection;
 
 namespace Watcher.Runner.Logging;
 
-public class EventLogger(Serilog.Core.Logger logger) : IEventLogger
+public class EventLogger(Logger logger) : IEventLogger
 {
     private const string EVENT_TEMPLATE = "{Event} @{Payload}";
     private const string EVENT_ONLY_TEMPLATE = "{Event}";

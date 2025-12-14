@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Discord.WebSocket;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using Watcher.Runner.DiscordEventHandlers;
@@ -25,11 +26,17 @@ public static class ContainersFactory
 
     private static ContainerBuilder RegisterLogging(this ContainerBuilder builder)
     {
-        var logger = new LoggerConfiguration()
+        var openObserveEmail = Environment.GetEnvironmentVariable("ZO_ROOT_USER_EMAIL", EnvironmentVariableTarget.User);
+        var openObservePassword = Environment.GetEnvironmentVariable("ZO_ROOT_USER_PASSWORD", EnvironmentVariableTarget.User);
+
+        Log.Logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .MinimumLevel.Debug()
             .WriteTo.Console(new JsonFormatter(), LogEventLevel.Debug)
+            .WriteTo.OpenObserve("http://localhost:5080", "default", openObserveEmail, openObservePassword, "default", LogEventLevel.Debug)
             .CreateLogger();
 
-        var eventLogger = new EventLogger(logger);
+        var eventLogger = new EventLogger((Logger)Log.Logger);
         _ = builder.RegisterInstance(eventLogger)
             .As<IEventLogger>()
             .SingleInstance();
