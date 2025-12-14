@@ -1,5 +1,4 @@
-﻿
-namespace Watcher.Runner;
+﻿namespace Watcher.Runner.Domain.AnomalyDetection;
 
 public interface IAnomalyDetector
 {

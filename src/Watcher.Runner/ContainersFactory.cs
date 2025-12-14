@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using Watcher.Runner.DiscordEventHandlers;
+using Watcher.Runner.Domain.AnomalyDetection;
 using Watcher.Runner.Logging;
 using Watcher.Runner.Providers;
 using Watcher.Runner.Storage;

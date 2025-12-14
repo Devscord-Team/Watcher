@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Serilog.Events;
+using Watcher.Runner.Domain.AnomalyDetection;
 
 namespace Watcher.Runner.Logging;
 

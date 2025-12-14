@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Watcher.Runner.Domain.AnomalyDetection;
 
 namespace Watcher.Runner.Logging;
 

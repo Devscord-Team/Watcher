@@ -2,7 +2,7 @@
 using Watcher.Runner.Providers;
 using Watcher.Runner.Storage;
 
-namespace Watcher.Runner;
+namespace Watcher.Runner.Domain.AnomalyDetection;
 
 public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger, IDateTimeProvider dateTimeProvider) : IAnomalyDetector
 {
@@ -223,17 +223,4 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
 
         return channelMessages.Count();
     }
-}
-
-public record StatKey(ulong ChannelId, DayOfWeek DayOfWeek, TimeOnly TimeSlot);
-
-public record ChannelStats(double Average, int WeeksOfData);
-
-public record AnomalyResult(
-    ulong ChannelId,
-    DateTime DetectedAt,
-    int CurrentCount,
-    double AverageCount)
-{
-    public double Multiplier => this.CurrentCount / Math.Max(this.AverageCount, 1);
 }
