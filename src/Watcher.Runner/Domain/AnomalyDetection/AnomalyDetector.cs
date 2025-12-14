@@ -48,7 +48,6 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
             this.statsCache = newStatsCache;
             this.lastRefreshTime = dateTimeProvider.GetUtcNow();
 
-
             eventLogger.Event_AnomalyDetectorCacheRefreshFinished();
         }
 
