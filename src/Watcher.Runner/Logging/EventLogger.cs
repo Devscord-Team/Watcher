@@ -7,7 +7,7 @@ namespace Watcher.Runner.Logging;
 
 public class EventLogger(Logger logger) : IEventLogger
 {
-    private const string EVENT_TEMPLATE = "{Event} @{Payload}";
+    private const string EVENT_TEMPLATE = "{Event} {@Payload}";
     private const string EVENT_ONLY_TEMPLATE = "{Event}";
     private const string LOG_MESSAGE_TEMPLATE = "{@LogMessage}";
 
