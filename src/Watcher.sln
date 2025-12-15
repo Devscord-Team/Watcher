@@ -5,6 +5,10 @@ VisualStudioVersion = 17.14.36301.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watcher.Runner", "Watcher.Runner\Watcher.Runner.csproj", "{F5085F3E-1A7A-4E93-9833-51C615FE081A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watcher.Runner.Tests.Unit", "Watcher.Runner.Tests.Unit\Watcher.Runner.Tests.Unit.csproj", "{6A53AABF-17C8-44A2-B07C-FD262D2F1F6C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +19,16 @@ Global
 		{F5085F3E-1A7A-4E93-9833-51C615FE081A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5085F3E-1A7A-4E93-9833-51C615FE081A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5085F3E-1A7A-4E93-9833-51C615FE081A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A53AABF-17C8-44A2-B07C-FD262D2F1F6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A53AABF-17C8-44A2-B07C-FD262D2F1F6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A53AABF-17C8-44A2-B07C-FD262D2F1F6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A53AABF-17C8-44A2-B07C-FD262D2F1F6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6A53AABF-17C8-44A2-B07C-FD262D2F1F6C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B45BF856-EA4E-4765-8FD3-FC318B936AC8}
