@@ -3,10 +3,10 @@ using Watcher.Runner.Providers;
 using Watcher.Runner.Storage;
 
 namespace Watcher.Runner.Monitoring;
-public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateTimeProvider, IMessagesStorage messagesStorage)
+public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateTimeProvider, IMessagesStorage messagesStorage) : IRealTimeActivityMonitor
 {
     private List<MessageInfo> lastHourMessages = new();
-    private readonly Lock obj = new ();
+    private readonly Lock obj = new();
 
     public void Initialize()
     {
@@ -14,7 +14,7 @@ public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateT
             .GetAllMessagesInfos()
             .Where(x => x.SentAt > dateTimeProvider.GetUtcNow().AddHours(-1))];
 
-        eventBus.Subscribe<MessageInfoReceivedEvent>(x => 
+        eventBus.Subscribe<MessageInfoReceivedEvent>(x =>
         {
             lock (obj)
             {
