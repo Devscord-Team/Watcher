@@ -23,6 +23,7 @@ public class MessageReceivedHandler(IEventLogger eventLogger, IMessagesStorage m
             _ = await message.Channel.SendMessageAsync(MARCHEW_MESSAGE);
         }
 
+        //temp command to test background job results
         if (normalized is "-stats")
         {
             string getContent()
