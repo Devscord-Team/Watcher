@@ -65,6 +65,6 @@ public class MessagesStorage : IMessagesStorage
             result = result.Where(x => x.SentAt >= fromSentAtUtc.Value);
         }
 
-        return result.ToArray();
+        return [.. result];
     }
 }
