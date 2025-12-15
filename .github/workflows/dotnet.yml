@@ -30,9 +30,26 @@ jobs:
       - name: Unit Tests
         run: dotnet test src/Watcher.Runner.Tests.Unit --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage.opencover.xml /p:CoverletOutputDirectory=$(pwd)/coverage /p:ExcludeByAttribute=CompilerGeneratedAttribute
 
+      - name: Show coverage file (debug)
+        if: always()
+        run: |
+          echo "Coverage dir listing:" || true
+          ls -la coverage || true
+          echo "First 120 lines of coverage file:" || true
+          sed -n '1,120p' coverage/coverage.opencover.xml || true
+
+      - name: Upload coverage artifact (debug)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/coverage.opencover.xml
+
       - name: Upload coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v5
+        env:
+          CODECOV_DEBUG: '1'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/coverage.opencover.xml
