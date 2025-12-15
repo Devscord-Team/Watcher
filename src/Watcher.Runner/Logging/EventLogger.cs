@@ -49,7 +49,14 @@ public class EventLogger(Logger logger) : IEventLogger
         => this.Info(nameof(Event_AnomalyDetectorCacheRefreshStarted));
 
     public void Event_AnomalyDetectorScanChannelFinished(ulong channelId, AnomalyResult? result)
-        => this.Info(nameof(Event_AnomalyDetectorScanChannelFinished), new { ChannelId = channelId, Result = result });
+        => this.Info(nameof(Event_AnomalyDetectorScanChannelFinished), new
+        {
+            ChannelId = channelId,
+            HasAnomaly = result != null,
+            CurrentCount = result?.CurrentCount,
+            AverageCount = result?.AverageCount,
+            Multiplier = result?.Multiplier
+        });
 
     public void Event_AnomalyDetectorScanChannelStarted(ulong channelId)
         => this.Info(nameof(Event_AnomalyDetectorScanChannelStarted), new { ChannelId = channelId });
