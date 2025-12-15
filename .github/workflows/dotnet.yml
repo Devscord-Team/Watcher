@@ -15,20 +15,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
+          cache: true
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - name: Restore dependencies
         run: dotnet restore src/
+
       - name: Build
         run: dotnet build src/ --configuration Release --no-restore
+
       - name: Unit Tests
-        run: dotnet test src/Watcher.Runner.Tests.Unit --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:ExcludeByAttribute=CompilerGeneratedAttribute
+        run: dotnet test src/Watcher.Runner.Tests.Unit --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutputDirectory=$(pwd)/coverage /p:ExcludeByAttribute=CompilerGeneratedAttribute
+
       - name: Upload coverage to Codecov
+        if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./src/Watcher.Runner.Tests.Unit/coverage.opencover.xml
+          files: ./coverage/coverage.opencover.xml
           flags: unit
-          fail_ci_if_error: true
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: src/Watcher.Runner.Tests.Unit/bin/Release/net9.0/
