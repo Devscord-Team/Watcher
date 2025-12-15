@@ -1,6 +1,6 @@
 # Watcher
 
-[![Test Coverage](https://codecov.io/gh/Devscord-Team/Watcher/graph/badge.svg?token=71BI6043KV)](https://codecov.io/gh/Devscord-Team/Watcher)
+[![Test Coverage](https://codecov.io/gh/Devscord-Team/Watcher/graph/badge.svg?token=HUBXSLPKF0)](https://codecov.io/gh/Devscord-Team/Watcher)
 
 Bot discordowy. Reaktywacja projektu [Watchman](https://github.com/Devscord-Team/Watchman), ale pisana od zera.
 

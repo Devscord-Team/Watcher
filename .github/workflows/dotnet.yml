@@ -28,7 +28,7 @@ jobs:
         run: dotnet build src/ --configuration Release --no-restore
 
       - name: Unit Tests
-        run: dotnet test src/Watcher.Runner.Tests.Unit --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutputDirectory=$(pwd)/coverage /p:ExcludeByAttribute=CompilerGeneratedAttribute
+        run: dotnet test src/Watcher.Runner.Tests.Unit --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage.opencover.xml /p:CoverletOutputDirectory=$(pwd)/coverage /p:ExcludeByAttribute=CompilerGeneratedAttribute
 
       - name: Upload coverage to Codecov
         if: always()
