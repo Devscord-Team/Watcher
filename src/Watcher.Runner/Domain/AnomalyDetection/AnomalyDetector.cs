@@ -32,8 +32,8 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
 
             eventLogger.Event_AnomalyDetectorCacheRefreshStarted();
 
-            var freshMessages = storage.GetAllMessagesInfos();
             var now = this.GetCurrentTime();
+            var freshMessages = storage.GetAllMessagesInfos(fromSentAtUtc: now.AddDays(-7 * HISTORICAL_WEEKS));
 
             var messagesByChan = freshMessages
                 .Select(m => m.ChangeTimezone(this.cestTimezone))
