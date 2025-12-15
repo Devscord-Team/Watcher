@@ -21,6 +21,7 @@ public static class ContainersFactory
             .RegisterStorage()
             .RegisterProviders()
             .RegisterAnomalyDetection()
+            .RegisterEvents()
             .Build();
     }
 
@@ -87,6 +88,15 @@ public static class ContainersFactory
     {
         _ = builder.RegisterType<AnomalyDetector>()
             .As<IAnomalyDetector>()
+            .SingleInstance();
+
+        return builder;
+    }
+
+    private static ContainerBuilder RegisterEvents(this ContainerBuilder builder)
+    {
+        _ = builder.RegisterType<EventBus>()
+            .As<IEventBus>()
             .SingleInstance();
 
         return builder;

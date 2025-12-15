@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Watcher.Runner.Domain.AnomalyDetection;
