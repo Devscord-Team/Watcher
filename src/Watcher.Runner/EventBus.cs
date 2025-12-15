@@ -7,7 +7,7 @@ namespace Watcher.Runner;
 public class EventBus(IEventLogger eventLogger) : IEventBus
 {
     private readonly ConcurrentDictionary<string, ImmutableList<Action<object>>> _subscribers = new();
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     public IDisposable Subscribe<T>(Action<T> handler) where T : IEvent
     {
