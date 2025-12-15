@@ -16,7 +16,7 @@ public static class ContainersFactory
 {
     public static IContainer Create()
     {
-        return new ContainerBuilder()
+        var build = new ContainerBuilder()
             .RegisterLogging()
             .RegisterDiscord()
             .RegisterStorage()
@@ -25,6 +25,12 @@ public static class ContainersFactory
             .RegisterEvents()
             .RegisterRealTimeMonitors()
             .Build();
+
+        //Initialize
+        build.Resolve<IAnomalyDetector>().Initialize();
+        build.Resolve<IRealTimeActivityMonitor>().Initialize();
+
+        return build;
     }
 
     private static ContainerBuilder RegisterLogging(this ContainerBuilder builder)

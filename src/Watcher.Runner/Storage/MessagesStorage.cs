@@ -34,7 +34,7 @@ public class MessagesStorage : IMessagesStorage
         }
     }
 
-    public MessageInfo[] GetAllMessagesInfos()
+    public MessageInfo[] GetAllMessagesInfos(ulong? serverId = null, ulong? channelId = null, DateTime? fromSentAtUtc = null)
     {
         if (!File.Exists(MESSAGES_INFO_HISTORY_PATH))
         {
@@ -44,8 +44,23 @@ public class MessagesStorage : IMessagesStorage
         var jsonItems = File.ReadAllText(MESSAGES_INFO_HISTORY_PATH);
 
         var json = $"[{jsonItems}]";
-        var result = JsonConvert.DeserializeObject<MessageInfo[]>(json)!;
+        var result = JsonConvert.DeserializeObject<IEnumerable<MessageInfo>>(json)!;
 
-        return result;
+        if (serverId.HasValue)
+        {
+            result = result.Where(x => x.ServerId == serverId.Value);
+        }
+
+        if (channelId.HasValue)
+        {
+            result = result.Where(x => x.ChannelId == channelId.Value);
+        }
+
+        if (fromSentAtUtc.HasValue)
+        {
+            result = result.Where(x => x.SentAt >= fromSentAtUtc.Value);
+        }
+
+        return result.ToArray();
     }
 }
