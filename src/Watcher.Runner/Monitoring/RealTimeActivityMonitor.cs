@@ -1,14 +1,19 @@
 ﻿using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Providers;
+using Watcher.Runner.Storage;
 
 namespace Watcher.Runner.Monitoring;
-public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateTimeProvider)
+public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateTimeProvider, IMessagesStorage messagesStorage)
 {
     private List<MessageInfo> lastHourMessages = new();
     private readonly Lock obj = new ();
 
     public void Initialize()
     {
+        this.lastHourMessages = [.. messagesStorage
+            .GetAllMessagesInfos()
+            .Where(x => x.SentAt > dateTimeProvider.GetUtcNow().AddHours(-1))];
+
         eventBus.Subscribe<MessageInfoReceivedEvent>(x => 
         {
             lock (obj)
