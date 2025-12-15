@@ -39,7 +39,7 @@ public class EventLogger(Logger logger) : IEventLogger
     public void Event_ReceivedMessage(MessageInfo statMessageInfo)
         => this.Info(nameof(Event_ReceivedMessage), statMessageInfo);
 
-    public void Event_SavedMessagesInfos(ulong guildId, ulong channelId, int count) 
+    public void Event_SavedMessagesInfos(ulong guildId, ulong channelId, int count)
         => this.Info(nameof(Event_SavedMessagesInfos), new { GuildId = guildId, ChannelId = channelId, Count = count });
 
     public void Event_AnomalyDetectorCacheRefreshFinished()
@@ -53,9 +53,9 @@ public class EventLogger(Logger logger) : IEventLogger
         {
             ChannelId = channelId,
             HasAnomaly = result != null,
-            CurrentCount = result?.CurrentCount,
-            AverageCount = result?.AverageCount,
-            Multiplier = result?.Multiplier
+            result?.CurrentCount,
+            result?.AverageCount,
+            result?.Multiplier
         });
 
     public void Event_AnomalyDetectorScanChannelStarted(ulong channelId)

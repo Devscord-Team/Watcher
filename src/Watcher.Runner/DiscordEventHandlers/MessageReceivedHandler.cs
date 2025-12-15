@@ -25,19 +25,19 @@ public class MessageReceivedHandler(IEventLogger eventLogger, IMessagesStorage m
 
         if (normalized is "-stats")
         {
-            var getContent = () => 
+            string getContent()
             {
                 var lastHour = realTimeActivityMonitor.GetLastHourMessagesCount(false);
                 var lastHalfHour = realTimeActivityMonitor.GetHalfLastHourMessagesCount(true);
 
                 return $"Statystyki wiadomości:\r\nOstatnia godzina: {lastHour}\r\nOstatnie pół godziny: {lastHalfHour}";
-            };
+            }
 
             var content = getContent();
             var sentMessage = await message.Channel.SendMessageAsync(content);
-            _ = Task.Run(async () => 
+            _ = Task.Run(async () =>
             {
-                while(true)
+                while (true)
                 {
                     var newContent = getContent();
                     if (newContent != content)
@@ -45,7 +45,7 @@ public class MessageReceivedHandler(IEventLogger eventLogger, IMessagesStorage m
                         await sentMessage.ModifyAsync(x => x.Content = getContent());
                         content = newContent;
                     }
-                    
+
                     await Task.Delay(1000);
                 }
             });

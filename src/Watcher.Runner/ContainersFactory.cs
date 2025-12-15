@@ -27,7 +27,7 @@ public static class ContainersFactory
             .Build();
 
         //Initialize
-        build.Resolve<IAnomalyDetector>().Initialize();
+        _ = build.Resolve<IAnomalyDetector>().Initialize();
         build.Resolve<IRealTimeActivityMonitor>().Initialize();
 
         return build;

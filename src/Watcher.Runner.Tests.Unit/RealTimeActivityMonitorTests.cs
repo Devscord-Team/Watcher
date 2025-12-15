@@ -45,7 +45,7 @@ public class RealTimeActivityMonitorTests
     private void SetupStorageMessages(params DateTime[] sentAtTimes)
     {
         var messages = sentAtTimes.Select(this.CreateMessage).ToArray();
-        this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos()).Returns(messages);
+        _ = this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos()).Returns(messages);
     }
 
     [Test]

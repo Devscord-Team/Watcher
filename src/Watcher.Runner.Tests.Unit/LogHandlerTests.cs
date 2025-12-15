@@ -14,8 +14,8 @@ public class LogHandlerTests
     [SetUp]
     public void SetUp()
     {
-        _eventLoggerMock = new Mock<IEventLogger>();
-        _sut = new LogHandler(_eventLoggerMock.Object);
+        this._eventLoggerMock = new Mock<IEventLogger>();
+        this._sut = new LogHandler(this._eventLoggerMock.Object);
     }
 
     [Test]
@@ -25,10 +25,10 @@ public class LogHandlerTests
         var logMessage = new LogMessage(LogSeverity.Info, "TestSource", "Test message");
 
         // Act
-        await _sut.Handle(logMessage);
+        await this._sut.Handle(logMessage);
 
         // Assert
-        _eventLoggerMock.Verify(x => x.LogMessage(logMessage), Times.Once);
+        this._eventLoggerMock.Verify(x => x.LogMessage(logMessage), Times.Once);
     }
 
     [Test]
@@ -39,10 +39,10 @@ public class LogHandlerTests
         var logMessage = new LogMessage(LogSeverity.Error, "ErrorSource", "Error occurred", exception);
 
         // Act
-        await _sut.Handle(logMessage);
+        await this._sut.Handle(logMessage);
 
         // Assert
-        _eventLoggerMock.Verify(
+        this._eventLoggerMock.Verify(
             x => x.LogMessage(It.Is<LogMessage>(m =>
                 m.Severity == LogSeverity.Error &&
                 m.Source == "ErrorSource" &&
@@ -58,7 +58,7 @@ public class LogHandlerTests
         var logMessage = new LogMessage(LogSeverity.Debug, "Source", "Message");
 
         // Act
-        var result = _sut.Handle(logMessage);
+        var result = this._sut.Handle(logMessage);
 
         // Assert
         Assert.That(result.IsCompleted, Is.True);
@@ -76,10 +76,10 @@ public class LogHandlerTests
         var logMessage = new LogMessage(severity, "Source", "Message");
 
         // Act
-        await _sut.Handle(logMessage);
+        await this._sut.Handle(logMessage);
 
         // Assert
-        _eventLoggerMock.Verify(
+        this._eventLoggerMock.Verify(
             x => x.LogMessage(It.Is<LogMessage>(m => m.Severity == severity)),
             Times.Once);
     }

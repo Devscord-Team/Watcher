@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Discord;
 using Discord.WebSocket;
-using System;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Extensions;
 using Watcher.Runner.Logging;
@@ -12,7 +11,7 @@ namespace Watcher.Runner;
 public class DiscordRunner(IComponentContext context, IMessagesStorage messagesStorage, IEventLogger eventLogger, IDateTimeProvider dateTimeProvider) : IDiscordRunner
 {
     private bool started = false;
-    private static readonly Lock obj = new ();
+    private static readonly Lock obj = new();
 
     private readonly DiscordSocketConfig config = new()
     {
@@ -21,17 +20,17 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
 
     public async Task Run(string token)
     {
-        lock(obj)
+        lock (obj)
         {
-            if (started)
+            if (this.started)
             {
                 return;
             }
 
-            started = true;
+            this.started = true;
         }
 
-        var client = new DiscordSocketClient(config);
+        var client = new DiscordSocketClient(this.config);
         this.ConfigureLog(client);
         this.ConfigureMessageReceived(client);
         this.ConfigureSlashCommandExecuted(client);
@@ -130,7 +129,7 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                 messagesStorage.SaveMessagesInfos(toSave);
                 eventLogger.Event_SavedMessagesInfos(channel.GuildId, channel.Id, toSave.Count());
             }
-            
+
             if (batch.OrderByDescending(x => x.Timestamp).First().Timestamp.UtcDateTime < dateTimeProvider.GetUtcNow().AddMonths(-1))
             {
                 break;

@@ -16,7 +16,7 @@ try
     await discordRunner.Run(token);
     await Task.Delay(-1);
 }
-catch(Exception exception)
+catch (Exception exception)
 {
     eventLogger.Event_BreakingProgramException(exception);
 }

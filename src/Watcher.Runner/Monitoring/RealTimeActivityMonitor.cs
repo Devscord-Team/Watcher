@@ -5,7 +5,7 @@ using Watcher.Runner.Storage;
 namespace Watcher.Runner.Monitoring;
 public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateTimeProvider, IMessagesStorage messagesStorage) : IRealTimeActivityMonitor, IDisposable
 {
-    private List<MessageInfo> lastHourMessages = new();
+    private List<MessageInfo> lastHourMessages = [];
     private readonly Lock obj = new();
     private IDisposable? messageInfoReceivedEventSubscription;
 
@@ -15,7 +15,7 @@ public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateT
 
         this.messageInfoReceivedEventSubscription = eventBus.Subscribe<MessageInfoReceivedEvent>(x =>
         {
-            lock (obj)
+            lock (this.obj)
             {
                 this.lastHourMessages.Add(x.MessageInfo);
             }
@@ -29,7 +29,7 @@ public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateT
             this.ClearOutdatedData(dateTimeProvider.GetUtcNow().AddHours(-1));
         }
 
-        return [.. lastHourMessages];
+        return [.. this.lastHourMessages];
     }
 
     public int GetLastHourMessagesCount(bool clearOutdatedData = true)
@@ -49,7 +49,7 @@ public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateT
             this.ClearOutdatedData(dateTimeProvider.GetUtcNow().AddHours(-1));
         }
 
-        var halfHour = lastHourMessages.Where(x => x.SentAt > dateTimeProvider.GetUtcNow().AddMinutes(-30));
+        var halfHour = this.lastHourMessages.Where(x => x.SentAt > dateTimeProvider.GetUtcNow().AddMinutes(-30));
         return [.. halfHour];
     }
 
@@ -60,20 +60,17 @@ public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateT
             this.ClearOutdatedData(dateTimeProvider.GetUtcNow().AddHours(-1));
         }
 
-        var halfHour = lastHourMessages.Where(x => x.SentAt > dateTimeProvider.GetUtcNow().AddMinutes(-30));
+        var halfHour = this.lastHourMessages.Where(x => x.SentAt > dateTimeProvider.GetUtcNow().AddMinutes(-30));
         return halfHour.Count();
     }
 
     private void ClearOutdatedData(DateTime from)
     {
-        lock (obj)
+        lock (this.obj)
         {
-            lastHourMessages = [.. lastHourMessages.Where(x => x.SentAt > from)];
+            this.lastHourMessages = [.. this.lastHourMessages.Where(x => x.SentAt > from)];
         }
     }
 
-    public void Dispose()
-    {
-        this.messageInfoReceivedEventSubscription?.Dispose();
-    }
+    public void Dispose() => this.messageInfoReceivedEventSubscription?.Dispose();
 }

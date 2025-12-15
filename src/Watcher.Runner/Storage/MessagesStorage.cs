@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.Text;
 using Watcher.Runner.Providers;
 
@@ -11,7 +10,7 @@ public class MessagesStorage(IDateTimeProvider dateTimeProvider) : IMessagesStor
     /// todo: add database
     /// </summary>
     private const string MESSAGES_INFO_HISTORY_PATH = "MessagesInfoHistory.json";
-    private static readonly Lock obj = new ();
+    private static readonly Lock obj = new();
     private DateTime lastRefresh = default;
     private MessageInfo[]? allMessagesCache;
 
@@ -33,7 +32,7 @@ public class MessagesStorage(IDateTimeProvider dateTimeProvider) : IMessagesStor
         {
             var json = JsonConvert.SerializeObject(message);
             var content = json + ",\r\n";
-            fullText.Append(content);
+            _ = fullText.Append(content);
         }
 
         lock (obj)
@@ -46,9 +45,9 @@ public class MessagesStorage(IDateTimeProvider dateTimeProvider) : IMessagesStor
     {
         var now = dateTimeProvider.GetUtcNow();
         IEnumerable<MessageInfo> result;
-        if (lastRefresh > now.AddMinutes(-1))
+        if (this.lastRefresh > now.AddMinutes(-1))
         {
-            result = allMessagesCache!;
+            result = this.allMessagesCache!;
         }
         else
         {
@@ -60,8 +59,8 @@ public class MessagesStorage(IDateTimeProvider dateTimeProvider) : IMessagesStor
             var jsonItems = File.ReadAllText(MESSAGES_INFO_HISTORY_PATH);
             var json = $"[{jsonItems}]";
             result = JsonConvert.DeserializeObject<IEnumerable<MessageInfo>>(json)!;
-            allMessagesCache = [.. result];
-            lastRefresh = dateTimeProvider.GetUtcNow();
+            this.allMessagesCache = [.. result];
+            this.lastRefresh = dateTimeProvider.GetUtcNow();
         }
 
         if (serverId.HasValue)

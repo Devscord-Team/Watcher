@@ -25,7 +25,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
     {
         lock (this.cacheLock)
         {
-            if (lastRefreshTime.HasValue && lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
+            if (this.lastRefreshTime.HasValue && this.lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
             {
                 return;
             }
@@ -125,12 +125,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
 
     private bool IsAnomaly(int currentCount, ChannelStats stats)
     {
-        if (stats.Average <= 0)
-        {
-            return false;
-        }
-
-        return currentCount >= stats.Average * ANOMALY_THRESHOLD
+        return stats.Average > 0 && currentCount >= stats.Average * ANOMALY_THRESHOLD
             && currentCount >= MIN_MESSAGES_FOR_ANOMALY;
     }
 
