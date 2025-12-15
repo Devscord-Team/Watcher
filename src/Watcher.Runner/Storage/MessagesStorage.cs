@@ -4,6 +4,10 @@ using System.Text;
 namespace Watcher.Runner.Storage;
 public class MessagesStorage : IMessagesStorage
 {
+    /// <summary>
+    /// json is temporary
+    /// todo: add database
+    /// </summary>
     private const string MESSAGES_INFO_HISTORY_PATH = "MessagesInfoHistory.json";
     private static readonly Lock obj = new ();
 
