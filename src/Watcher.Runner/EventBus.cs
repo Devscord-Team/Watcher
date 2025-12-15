@@ -42,5 +42,3 @@ public class EventBus : IEventBus
         }
     }
 }
-
-public interface IEvent;
