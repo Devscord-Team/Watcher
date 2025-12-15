@@ -18,7 +18,7 @@ public class EventBus(IEventLogger eventLogger) : IEventBus
         {
             _ = this._subscribers.AddOrUpdate(
                 typeName,
-                _ => ImmutableList.Create(wrappedHandler),
+                _ => [wrappedHandler],
                 (_, existing) => existing.Add(wrappedHandler));
         }
 
