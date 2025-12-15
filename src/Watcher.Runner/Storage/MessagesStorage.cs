@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Text;
+using Watcher.Runner.Providers;
 
 namespace Watcher.Runner.Storage;
-public class MessagesStorage : IMessagesStorage
+public class MessagesStorage(IDateTimeProvider dateTimeProvider) : IMessagesStorage
 {
     /// <summary>
     /// json is temporary
@@ -10,6 +12,8 @@ public class MessagesStorage : IMessagesStorage
     /// </summary>
     private const string MESSAGES_INFO_HISTORY_PATH = "MessagesInfoHistory.json";
     private static readonly Lock obj = new ();
+    private DateTime lastRefresh = default;
+    private MessageInfo[]? allMessagesCache;
 
     public void SaveMessageInfo(MessageInfo message)
     {
@@ -40,15 +44,25 @@ public class MessagesStorage : IMessagesStorage
 
     public MessageInfo[] GetAllMessagesInfos(ulong? serverId = null, ulong? channelId = null, DateTime? fromSentAtUtc = null)
     {
-        if (!File.Exists(MESSAGES_INFO_HISTORY_PATH))
+        var now = dateTimeProvider.GetUtcNow();
+        IEnumerable<MessageInfo> result;
+        if (lastRefresh > now.AddMinutes(-1))
         {
-            return [];
+            result = allMessagesCache!;
         }
+        else
+        {
+            if (!File.Exists(MESSAGES_INFO_HISTORY_PATH))
+            {
+                return [];
+            }
 
-        var jsonItems = File.ReadAllText(MESSAGES_INFO_HISTORY_PATH);
-
-        var json = $"[{jsonItems}]";
-        var result = JsonConvert.DeserializeObject<IEnumerable<MessageInfo>>(json)!;
+            var jsonItems = File.ReadAllText(MESSAGES_INFO_HISTORY_PATH);
+            var json = $"[{jsonItems}]";
+            result = JsonConvert.DeserializeObject<IEnumerable<MessageInfo>>(json)!;
+            allMessagesCache = [.. result];
+            lastRefresh = dateTimeProvider.GetUtcNow();
+        }
 
         if (serverId.HasValue)
         {
