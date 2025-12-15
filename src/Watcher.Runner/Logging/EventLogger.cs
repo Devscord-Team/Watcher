@@ -54,6 +54,21 @@ public class EventLogger(Logger logger) : IEventLogger
     public void Event_AnomalyDetectorScanChannelStarted(ulong channelId)
         => this.Info(nameof(Event_AnomalyDetectorScanChannelStarted), new { ChannelId = channelId });
 
+    public void Event_AllEventHandlersExecuted(string typeName, int handlersCount)
+        => this.Info(nameof(Event_AllEventHandlersExecuted), new { TypeName = typeName, HandlersCount = handlersCount });
+
+    public void Event_EventHandlingException(string typeName, Exception exception)
+        => this.Err(nameof(Event_EventHandlingException), new { TypeName = typeName }, exception);
+
+    public void Event_EventSubscribed(string typeName)
+        => this.Info(nameof(Event_EventSubscribed), new { TypeName = typeName });
+
+    public void Event_EventUnsubscribed(string typeName)
+        => this.Info(nameof(Event_EventUnsubscribed), new { TypeName = typeName });
+
+    public void Event_PublishedEventOfType(string typeName)
+        => this.Info(nameof(Event_PublishedEventOfType), new { TypeName = typeName });
+
     public void Dispose()
         => logger.Dispose();
 
@@ -66,9 +81,12 @@ public class EventLogger(Logger logger) : IEventLogger
     private void Info(string eventName)
         => logger.Information(EVENT_ONLY_TEMPLATE, eventName);
 
-    private void Err<T>(string eventName, T payload)
-        => logger.Error(EVENT_TEMPLATE, eventName, payload);
+    private void Err<T>(string eventName, T payload, Exception exception)
+        => logger.Error(exception, EVENT_TEMPLATE, eventName, payload);
 
-    private void Fatal<T>(string eventName, T payload)
-        => logger.Fatal(EVENT_TEMPLATE, eventName, payload);
+    private void Fatal(string eventName, Exception exception)
+        => logger.Fatal(exception, EVENT_TEMPLATE, eventName);
+
+    private void Fatal<T>(string eventName, T payload, Exception exception)
+        => logger.Fatal(exception, EVENT_TEMPLATE, eventName, payload);
 }

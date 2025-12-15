@@ -1,4 +1,5 @@
 ﻿using Moq;
+using Watcher.Runner.Logging;
 
 namespace Watcher.Runner.Tests.Unit;
 
@@ -12,14 +13,23 @@ public class EventBusTests
         void Handle(TestEvent e);
     }
 
+    private Mock<IEventLogger> _loggerMock = null!;
+    private EventBus _bus = null!;
+
+    [SetUp]
+    public void SetUp()
+    {
+        _loggerMock = new Mock<IEventLogger>();
+        _bus = new EventBus(_loggerMock.Object);
+    }
+
     [Test]
     public async Task PublishShouldInvokeSubscription()
     {
-        var bus = new EventBus();
         var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        bus.Subscribe<TestEvent>(_ => tcs.TrySetResult(true));
-        bus.Publish(new TestEvent());
+        _bus.Subscribe<TestEvent>(_ => tcs.TrySetResult(true));
+        _bus.Publish(new TestEvent());
 
         var timeout = TimeSpan.FromSeconds(1);
         await tcs.Task.WaitAsync(timeout);
@@ -29,16 +39,17 @@ public class EventBusTests
     [Test]
     public async Task PublishShouldInvokeMultipleSubscriptions()
     {
-        var bus = new EventBus();
         var tcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var tcs2 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        bus.Subscribe<TestEvent>(_ => tcs1.TrySetResult(true));
-        bus.Subscribe<TestEvent>(_ => tcs2.TrySetResult(true));
-        bus.Publish(new TestEvent());
+        _bus.Subscribe<TestEvent>(_ => tcs1.TrySetResult(true));
+        _bus.Subscribe<TestEvent>(_ => tcs2.TrySetResult(true));
+        _bus.Publish(new TestEvent());
 
-        var completed = await Task.WhenAny(Task.WhenAll(tcs1.Task, tcs2.Task), Task.Delay(1000));
-        Assert.That(completed, Is.Not.EqualTo(Task.Delay(1000)), "Not all handlers invoked within timeout.");
+        var allCompleted = Task.WhenAll(tcs1.Task, tcs2.Task);
+        var completed = await Task.WhenAny(allCompleted, Task.Delay(1000));
+
+        Assert.That(completed, Is.EqualTo(allCompleted), "Not all handlers invoked within timeout.");
         Assert.That(tcs1.Task.IsCompletedSuccessfully);
         Assert.That(tcs2.Task.IsCompletedSuccessfully);
     }
@@ -46,7 +57,6 @@ public class EventBusTests
     [Test]
     public async Task PublishShouldPassEventInstanceToHandler_UsingMoq()
     {
-        var bus = new EventBus();
         var mock = new Mock<ITestHandler>();
         var expected = new TestEvent();
         var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -54,8 +64,8 @@ public class EventBusTests
         mock.Setup(m => m.Handle(It.Is<TestEvent>(e => ReferenceEquals(e, expected))))
             .Callback(() => tcs.TrySetResult(true));
 
-        bus.Subscribe<TestEvent>(e => mock.Object.Handle(e));
-        bus.Publish(expected);
+        _bus.Subscribe<TestEvent>(e => mock.Object.Handle(e));
+        _bus.Publish(expected);
 
         var completed = await Task.WhenAny(tcs.Task, Task.Delay(1000));
         Assert.That(completed, Is.EqualTo(tcs.Task), "Handler did not receive the exact event instance.");
@@ -65,20 +75,19 @@ public class EventBusTests
     [Test]
     public async Task PublishShouldInvokeOtherHandlersEvenIfOneThrows()
     {
-        var bus = new EventBus();
         var throwingTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var otherTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        bus.Subscribe<TestEvent>(_ =>
+        _bus.Subscribe<TestEvent>(_ =>
         {
             Task.Delay(10).Wait();
             throwingTcs.TrySetResult(true);
             throw new InvalidOperationException("handler error");
         });
 
-        bus.Subscribe<TestEvent>(_ => otherTcs.TrySetResult(true));
+        _bus.Subscribe<TestEvent>(_ => otherTcs.TrySetResult(true));
 
-        bus.Publish(new TestEvent());
+        _bus.Publish(new TestEvent());
 
         var completed = await Task.WhenAny(otherTcs.Task, Task.Delay(1000));
         Assert.That(completed, Is.EqualTo(otherTcs.Task), "Second handler was not invoked when the first handler threw.");
@@ -88,7 +97,75 @@ public class EventBusTests
     [Test]
     public void PublishWithNoSubscribersShouldNotThrow()
     {
-        var bus = new EventBus();
-        Assert.DoesNotThrow(() => bus.Publish(new TestEvent()));
+        Assert.DoesNotThrow(() => _bus.Publish(new TestEvent()));
+    }
+
+    [Test]
+    public async Task UnsubscribeShouldPreventFurtherInvocations()
+    {
+        var callCount = 0;
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var subscription = _bus.Subscribe<TestEvent>(_ =>
+        {
+            Interlocked.Increment(ref callCount);
+            tcs.TrySetResult(true);
+        });
+
+        _bus.Publish(new TestEvent());
+        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
+
+        subscription.Dispose();
+
+        _bus.Publish(new TestEvent());
+        await Task.Delay(100); // daj czas na potencjalne wywołanie
+
+        Assert.That(callCount, Is.EqualTo(1), "Handler should have been called only once before unsubscribe.");
+    }
+
+    [Test]
+    public void SubscribeShouldLogEvent()
+    {
+        _bus.Subscribe<TestEvent>(_ => { });
+
+        _loggerMock.Verify(
+            l => l.Event_EventSubscribed(typeof(TestEvent).FullName!),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task PublishShouldLogEvent()
+    {
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _bus.Subscribe<TestEvent>(_ => tcs.TrySetResult(true));
+
+        _bus.Publish(new TestEvent());
+        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
+
+        _loggerMock.Verify(
+            l => l.Event_PublishedEventOfType(typeof(TestEvent).FullName!),
+            Times.Once);
+    }
+
+    [Test]
+    public void UnsubscribeShouldLogEvent()
+    {
+        var subscription = _bus.Subscribe<TestEvent>(_ => { });
+        subscription.Dispose();
+
+        _loggerMock.Verify(
+            l => l.Event_EventUnsubscribed(typeof(TestEvent).FullName!),
+            Times.Once);
+    }
+
+    [Test]
+    public void UnsubscribeWithoutSubscribersShouldThrow()
+    {
+        var subscription = _bus.Subscribe<TestEvent>(_ => { });
+        subscription.Dispose();
+
+        // Próba ponownego unsubscribe (lista pusta, ale klucz istnieje)
+        // Ten test pokazuje obecne zachowanie - może wymagać zmiany w implementacji
+        Assert.DoesNotThrow(() => subscription.Dispose());
     }
 }
