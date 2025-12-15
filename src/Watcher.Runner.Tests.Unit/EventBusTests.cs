@@ -1,14 +1,20 @@
-﻿using Watcher.Runner.DiscordEventHandlers;
-
-namespace Watcher.Runner.Tests.Unit;
+﻿namespace Watcher.Runner.Tests.Unit;
 
 [TestFixture]
 public class EventBusTests
 {
     [Test]
-    public void Test1()
+    public async Task PublishShouldInvokeSubscription()
     {
         var bus = new EventBus();
-        bus.Subscribe<MessageInfoReceivedEvent>(x => { });
+        var handlerInvoked = false;
+
+        bus.Subscribe<TestEvent>(x => handlerInvoked = true);
+        bus.Publish(new TestEvent());
+        await Task.Delay(50);
+
+        Assert.That(handlerInvoked, Is.True, "Handler is invoked");
     }
 }
+
+public record TestEvent : IEvent;
