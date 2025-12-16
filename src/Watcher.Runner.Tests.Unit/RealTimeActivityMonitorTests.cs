@@ -26,7 +26,7 @@ public class RealTimeActivityMonitorTests
 
         this._now = new DateTime(2024, 6, 15, 12, 0, 0, DateTimeKind.Utc);
         _ = this._dateTimeProviderMock.Setup(x => x.GetUtcNow()).Returns(() => this._now);
-        _ = this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos()).Returns([]);
+        _ = this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns([]);
 
         _ = this._eventBusMock
             .Setup(x => x.Subscribe(It.IsAny<Action<MessageInfoReceivedEvent>>()))
@@ -38,6 +38,12 @@ public class RealTimeActivityMonitorTests
             this._messagesStorageMock.Object);
     }
 
+    [TearDown]
+    public void TearDown()
+    {
+        this._sut.Dispose();
+    }
+
     private MessageInfo CreateMessage(DateTime sentAt) => new(ServerId: 1, ChannelId: 1, UserId: 1, MessageId: 1, SentAt: sentAt);
 
     private void SimulateMessageReceived(DateTime sentAt) => this._messageReceivedHandler?.Invoke(new MessageInfoReceivedEvent(this.CreateMessage(sentAt)));
@@ -45,7 +51,7 @@ public class RealTimeActivityMonitorTests
     private void SetupStorageMessages(params DateTime[] sentAtTimes)
     {
         var messages = sentAtTimes.Select(this.CreateMessage).ToArray();
-        _ = this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos()).Returns(messages);
+        _ = this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns(messages);
     }
 
     [Test]
