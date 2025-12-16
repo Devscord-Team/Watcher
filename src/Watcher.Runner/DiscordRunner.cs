@@ -94,10 +94,16 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                             continue;
                         }
 
-                        var task = this.DownloadChannel(channel);
-                        tasks.Add(task);
+                        try
+                        {
+                            var task = this.DownloadChannel(channel);
+                            tasks.Add(task);
+                        }
+                        catch (Exception ex)
+                        {
+                            //toto log exception
+                        }
                     }
-
                     Task.WaitAll([.. tasks]);
                     return Task.CompletedTask;
                 });
@@ -126,11 +132,6 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
             {
                 await messagesStorage.SaveMessages(toSave);
                 eventLogger.Event_SavedMessagesInfos(channel.GuildId, channel.Id, toSave.Count());
-            }
-
-            if (batch.OrderByDescending(x => x.Timestamp).First().Timestamp.UtcDateTime < dateTimeProvider.GetUtcNow().AddMonths(-1))
-            {
-                break;
             }
 
             await Task.Delay(1000);

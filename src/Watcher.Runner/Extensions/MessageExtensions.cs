@@ -18,23 +18,16 @@ public static class MessageExtensions
         var channel = (IGuildChannel)message.Channel;
         var author = message.Author;
 
-        try
+        var result = new ServerMessage()
         {
-            var result = new ServerMessage()
-            {
-                ServerId = channel.GuildId,
-                ChannelId = channel.Id,
-                UserId = author.Id,
-                MessageId = message.Id,
-                Content = message.Content,
-                SentAtUtc = message.Timestamp.UtcDateTime
-            };
-            return result;
-        }
-        catch (Exception ex)
-        {
-            //todo log
-            return null;
-        }
+            ServerId = channel.GuildId,
+            ChannelId = channel.Id,
+            UserId = author.Id,
+            MessageId = message.Id,
+            Content = message.Content,
+            SentAtUtc = message.Timestamp.UtcDateTime
+        };
+
+        return result;
     }
 }

@@ -12,7 +12,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
     private readonly Lock cacheLock = new();
     private bool isReloadingCache = false;
 
-    private const int WINDOW_MINUTES = 30;
+    private const int WINDOW_MINUTES = 240;
     private const int HISTORICAL_WEEKS = 4;
     private const int MIN_HISTORICAL_WEEKS = 1;
     private const double ANOMALY_THRESHOLD = 2.0;
@@ -40,7 +40,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
         
         eventLogger.Event_AnomalyDetectorCacheRefreshStarted();
         var now = dateTimeProvider.GetUtcNow();
-        var freshMessages = await storage.GetMessagesInfos(fromSentAtUtc: now.AddDays(-7 * HISTORICAL_WEEKS));
+        var freshMessages = await storage.GetMessagesInfos(fromSentAtUtc: now.Date.AddDays((-7 * HISTORICAL_WEEKS) - 1));
 
         lock (this.cacheLock)
         {
@@ -157,7 +157,9 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
             return null;
         }
 
-        var average = counts.Where(c => c > 0).DefaultIfEmpty(0).Average();
+        // todo get oldest week
+        // if oldest week is newer than HISTORICAL_WEEKS, then divide by number of weeks in channel
+        var average = counts.Average();
 
         return new ChannelStats(average, weeksWithData);
     }
@@ -203,16 +205,33 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
     private static IEnumerable<(DayOfWeek Day, TimeOnly Time)> GetAllTimeSlots()
     {
         var days = Enum.GetValues<DayOfWeek>();
-        var times = Enumerable.Range(0, 48).Select(i => new TimeOnly(i / 2, i % 2 * 30));
+        var slots = new List<(DayOfWeek, TimeOnly)>();
 
-        return days.SelectMany(day => times.Select(time => (day, time)));
+        const int minutesPerDay = 24 * 60;
+        for (int minutes = 0; minutes < minutesPerDay; minutes += WINDOW_MINUTES)
+        {
+            var hour = minutes / 60;
+            var minute = minutes % 60;
+            var time = new TimeOnly(hour, minute);
+
+            foreach (DayOfWeek day in days)
+            {
+                slots.Add((day, time));
+            }
+        }
+
+        return slots;
     }
 
     private TimeOnly RoundToTimeSlot(DateTime dateTime)
     {
-        var minute = dateTime.Minute < 30 ? 0 : 30;
-        return new TimeOnly(dateTime.Hour, minute);
+        var totalMinutes = dateTime.Hour * 60 + dateTime.Minute;
+        var slotStartMinutes = (totalMinutes / WINDOW_MINUTES) * WINDOW_MINUTES;
+        var hour = slotStartMinutes / 60;
+        var minute = slotStartMinutes % 60;
+        return new TimeOnly(hour, minute);
     }
+
 
     private async Task<int> GetChannelMessages(ulong channelId, DateTime startDate)
     {
