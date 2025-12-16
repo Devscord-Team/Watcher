@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using System.Collections.Concurrent;
 using Watcher.Runner.Extensions;
 using Watcher.Runner.Logging;
 using Watcher.Runner.Monitoring;
