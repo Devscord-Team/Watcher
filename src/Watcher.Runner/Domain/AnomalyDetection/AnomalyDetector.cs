@@ -42,7 +42,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
         }
         
         eventLogger.Event_AnomalyDetectorCacheRefreshStarted();
-        var now = this.GetCurrentTime();
+        var now = dateTimeProvider.GetUtcNow();
         var freshMessages = await storage.GetMessagesInfos(fromSentAtUtc: now.AddDays(-7 * HISTORICAL_WEEKS));
 
         lock (this.cacheLock)
