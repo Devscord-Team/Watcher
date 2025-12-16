@@ -12,7 +12,7 @@ try
     eventLogger.Event_ProgramStarted();
 
     var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN")
-        ?? throw new ArgumentNullException("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
+        ?? throw new ArgumentException("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
 
     //Initialize
     await Task.WhenAll([
