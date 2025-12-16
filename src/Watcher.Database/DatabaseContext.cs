@@ -16,7 +16,7 @@ public class DatabaseContext : DbContext
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseNpgsql($"Host=localhost;Username=postgres;Database=postgres");
+        => options.UseNpgsql($"Host=localhost;Username=postgres;Database=Watcher");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
