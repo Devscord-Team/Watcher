@@ -15,4 +15,8 @@
     <PackageReference Include="Serilog.Sinks.OpenObserve-KKP" Version="1.0.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Watcher.Database\Watcher.Database.csproj" />
+  </ItemGroup>
+
 </Project>
