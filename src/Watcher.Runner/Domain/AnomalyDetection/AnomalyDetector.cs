@@ -10,16 +10,13 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
     private DateTime? lastRefreshTime;
 
     private readonly Lock cacheLock = new();
-
-    private readonly TimeZoneInfo cestTimezone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+    private bool isReloadingCache = false;
 
     private const int WINDOW_MINUTES = 30;
     private const int HISTORICAL_WEEKS = 4;
     private const int MIN_HISTORICAL_WEEKS = 1;
     private const double ANOMALY_THRESHOLD = 2.0;
     private const int MIN_MESSAGES_FOR_ANOMALY = 5;
-
-    private bool isReloadingCache = false;
 
     public async Task Initialize() => await this.RefreshCache();
 
@@ -53,7 +50,6 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
             }
 
             var messagesByChan = freshMessages
-                .Select(m => m.ChangeTimezone(this.cestTimezone))
                 .GroupBy(m => m.ChannelId)
                 .ToDictionary(g => g.Key, g => g.ToArray());
 
@@ -74,7 +70,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
     {
         eventLogger.Event_AnomalyDetectorScanChannelStarted(channelId);
 
-        var now = this.GetCurrentTime();
+        var now = dateTimeProvider.GetUtcNow();
         var timeSlot = this.RoundToTimeSlot(now);
         var key = new StatKey(channelId, now.DayOfWeek, timeSlot);
 
@@ -217,9 +213,6 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
         var minute = dateTime.Minute < 30 ? 0 : 30;
         return new TimeOnly(dateTime.Hour, minute);
     }
-
-    private DateTime GetCurrentTime()
-        => TimeZoneInfo.ConvertTimeFromUtc(dateTimeProvider.GetUtcNow(), this.cestTimezone);
 
     private async Task<int> GetChannelMessages(ulong channelId, DateTime startDate)
     {
