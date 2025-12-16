@@ -42,6 +42,8 @@ Główny cel to zabawa i eksperymenty. Jeśli coś będzie ciekawe do zbudowania
 
 ## Stack
 
-- .NET 9
+- [.NET 10](https://dotnet.microsoft.com/en-us/download)
+- [PostgreSQL](https://www.postgresql.org)
+- [OpenObserve](https://openobserve.ai/)
 
 Reszta jeszcze nie wybrana.
