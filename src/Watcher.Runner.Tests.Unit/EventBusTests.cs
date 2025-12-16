@@ -81,7 +81,7 @@ public class EventBusTests
         _ = this._bus.Subscribe<TestEvent>(_ =>
         {
             Task.Delay(10).Wait();
-            _ = throwingTcs.TrySetResult(true);
+            throwingTcs.TrySetResult(true);
             throw new InvalidOperationException("handler error");
         });
 
@@ -105,8 +105,8 @@ public class EventBusTests
 
         var subscription = this._bus.Subscribe<TestEvent>(_ =>
         {
-            _ = Interlocked.Increment(ref callCount);
-            _ = tcs.TrySetResult(true);
+            Interlocked.Increment(ref callCount);
+            tcs.TrySetResult(true);
         });
 
         this._bus.Publish(new TestEvent());
