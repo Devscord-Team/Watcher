@@ -120,7 +120,7 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                 break;
             }
 
-            var toSave = batch.Select(x => x.ToServerMessage());
+            var toSave = batch.Select(x => x.ToServerMessage()).Where(x => x != null);
 
             if (toSave.Any())
             {
