@@ -116,7 +116,6 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
     private async Task DownloadChannel(ITextChannel channel)
     {
         ulong? lastMessageId = null;
-
         while (true)
         {
             var batch = lastMessageId.HasValue
