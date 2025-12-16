@@ -51,33 +51,33 @@ public class RealTimeActivityMonitorTests
     private void SetupStorageMessages(params DateTime[] sentAtTimes)
     {
         var messages = sentAtTimes.Select(this.CreateMessage).ToArray();
-        _ = this._messagesStorageMock.Setup(x => x.GetMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns(messages);
+        _ = this._messagesStorageMock.Setup(x => x.GetMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns(Task.FromResult(messages));
     }
 
     [Test]
-    public void Initialize_LoadsRecentMessagesFromStorage()
+    public async Task Initialize_LoadsRecentMessagesFromStorage()
     {
         this.SetupStorageMessages(this._now.AddMinutes(-30));
 
-        this._sut.Initialize();
+        await this._sut.Initialize();
 
         Assert.That(this._sut.GetLastHourMessagesCount(), Is.EqualTo(1));
     }
 
     [Test]
-    public void Initialize_IgnoresOldMessagesFromStorage()
+    public async Task Initialize_IgnoresOldMessagesFromStorage()
     {
         this.SetupStorageMessages(this._now.AddHours(-2));
 
-        this._sut.Initialize();
+        await this._sut.Initialize();
 
         Assert.That(this._sut.GetLastHourMessagesCount(), Is.Zero);
     }
 
     [Test]
-    public void Initialize_TracksNewMessagesFromEventBus()
+    public async Task Initialize_TracksNewMessagesFromEventBus()
     {
-        this._sut.Initialize();
+        await this._sut.Initialize();
 
         this.SimulateMessageReceived(this._now.AddSeconds(-10));
 
@@ -85,10 +85,10 @@ public class RealTimeActivityMonitorTests
     }
 
     [Test]
-    public void GetLastHourMessages_ReturnsRecentMessages()
+    public async Task GetLastHourMessages_ReturnsRecentMessages()
     {
         this.SetupStorageMessages(this._now.AddMinutes(-30), this._now.AddMinutes(-45));
-        this._sut.Initialize();
+        await this._sut.Initialize();
 
         var result = this._sut.GetLastHourMessages();
 
@@ -96,10 +96,10 @@ public class RealTimeActivityMonitorTests
     }
 
     [Test]
-    public void GetLastHourMessages_ExcludesOutdatedMessagesAfterTimePass()
+    public async Task GetLastHourMessages_ExcludesOutdatedMessagesAfterTimePass()
     {
         this.SetupStorageMessages(this._now.AddMinutes(-50));
-        this._sut.Initialize();
+        await this._sut.Initialize();
 
         this._now = this._now.AddMinutes(20);
 
@@ -107,10 +107,10 @@ public class RealTimeActivityMonitorTests
     }
 
     [Test]
-    public void GetHalfLastHourMessages_ReturnsOnlyLast30Minutes()
+    public async Task GetHalfLastHourMessages_ReturnsOnlyLast30Minutes()
     {
         this.SetupStorageMessages(this._now.AddMinutes(-15), this._now.AddMinutes(-45));
-        this._sut.Initialize();
+        await this._sut.Initialize();
 
         var result = this._sut.GetHalfLastHourMessages();
 
@@ -118,10 +118,10 @@ public class RealTimeActivityMonitorTests
     }
 
     [Test]
-    public void GetHalfLastHourMessagesCount_ReturnsCorrectCount()
+    public async Task GetHalfLastHourMessagesCount_ReturnsCorrectCount()
     {
         this.SetupStorageMessages(this._now.AddMinutes(-10), this._now.AddMinutes(-20), this._now.AddMinutes(-40));
-        this._sut.Initialize();
+        await this._sut.Initialize();
 
         var result = this._sut.GetHalfLastHourMessagesCount();
 
