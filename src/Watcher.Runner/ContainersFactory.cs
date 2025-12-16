@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Json;
+using Watcher.Database;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Domain.AnomalyDetection;
 using Watcher.Runner.Logging;
@@ -78,6 +79,10 @@ public static class ContainersFactory
 
     private static ContainerBuilder RegisterStorage(this ContainerBuilder builder)
     {
+        _ = builder.RegisterType<DatabaseContext>()
+            .AsSelf()
+            .SingleInstance();
+
         _ = builder.RegisterType<MessagesStorage>()
             .As<IMessagesStorage>()
             .SingleInstance();
