@@ -111,6 +111,8 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
         };
     }
 
+    //todo depth max 5 weeks ago
+    //todo TaskDelay at least 1 second
     private async Task DownloadChannel(ITextChannel channel)
     {
         ulong? lastMessageId = null;
@@ -134,7 +136,7 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                 eventLogger.Event_SavedMessagesInfos(channel.GuildId, channel.Id, toSave.Count());
             }
 
-            await Task.Delay(1000);
+            await Task.Delay(300);
             lastMessageId = batch.Last().Id;
         }
     }
