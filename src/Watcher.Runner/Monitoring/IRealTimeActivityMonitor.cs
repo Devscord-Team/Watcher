@@ -2,7 +2,7 @@
 
 public interface IRealTimeActivityMonitor
 {
-    void Initialize();
+    Task Initialize();
     MessageInfo[] GetHalfLastHourMessages(bool clearOutdatedData = true);
     int GetHalfLastHourMessagesCount(bool clearOutdatedData = true);
     MessageInfo[] GetLastHourMessages(bool clearOutdatedData = true);

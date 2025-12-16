@@ -9,9 +9,9 @@ public class RealTimeActivityMonitor(IEventBus eventBus, IDateTimeProvider dateT
     private readonly Lock obj = new();
     private IDisposable? messageInfoReceivedEventSubscription;
 
-    public void Initialize()
+    public async Task Initialize()
     {
-        this.lastHourMessages = [.. messagesStorage.GetAllMessagesInfos(fromSentAtUtc: dateTimeProvider.GetUtcNow().AddHours(-1))];
+        this.lastHourMessages = [.. await messagesStorage.GetMessagesInfos(fromSentAtUtc: dateTimeProvider.GetUtcNow().AddHours(-1))];
 
         this.messageInfoReceivedEventSubscription = eventBus.Subscribe<MessageInfoReceivedEvent>(x =>
         {

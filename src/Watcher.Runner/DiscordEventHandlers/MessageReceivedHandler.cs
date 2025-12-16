@@ -1,5 +1,4 @@
 ﻿using Discord.WebSocket;
-using System.Collections.Concurrent;
 using Watcher.Runner.Extensions;
 using Watcher.Runner.Logging;
 using Watcher.Runner.Monitoring;
@@ -15,9 +14,7 @@ public class MessageReceivedHandler(IEventLogger eventLogger, IMessagesStorage m
         var messageInfo = message.ToMessageInfo();
 
         eventLogger.Event_ReceivedMessage(messageInfo);
-        messagesStorage.SaveMessageInfo(messageInfo);
-        eventBus.Publish(new MessageInfoReceivedEvent(messageInfo));
-
+        
         var normalized = message.Content.Trim().ToLower();
         if (normalized is "-marchew" or "!marchew")
         {
@@ -52,6 +49,9 @@ public class MessageReceivedHandler(IEventLogger eventLogger, IMessagesStorage m
                 }
             });
         }
+
+        await messagesStorage.SaveMessage(message.ToServerMessage());
+        eventBus.Publish(new MessageInfoReceivedEvent(messageInfo));
     }
 }
 

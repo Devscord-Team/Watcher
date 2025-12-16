@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Discord;
 using Discord.WebSocket;
+using Watcher.Database.Entities;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Extensions;
 using Watcher.Runner.Logging;
@@ -81,7 +82,6 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
 
                 _ = Task.Run(() =>
                 {
-                    var savedMessages = messagesStorage.GetAllMessagesInfos();
                     var botUser = guild.CurrentUser;
 
                     var tasks = new List<Task>();
@@ -94,7 +94,7 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                             continue;
                         }
 
-                        var task = this.DownloadChannel(savedMessages, channel);
+                        var task = this.DownloadChannel(channel);
                         tasks.Add(task);
                     }
 
@@ -105,7 +105,7 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
         };
     }
 
-    private async Task DownloadChannel(MessageInfo[] savedMessages, ITextChannel channel)
+    private async Task DownloadChannel(ITextChannel channel)
     {
         ulong? lastMessageId = null;
 
@@ -120,13 +120,11 @@ public class DiscordRunner(IComponentContext context, IMessagesStorage messagesS
                 break;
             }
 
-            var toSave = batch
-                .Where(x => !savedMessages.Any(s => s.MessageId == x.Id))
-                .Select(x => x.ToMessageInfo());
+            var toSave = batch.Select(x => x.ToServerMessage());
 
             if (toSave.Any())
             {
-                messagesStorage.SaveMessagesInfos(toSave);
+                await messagesStorage.SaveMessages(toSave);
                 eventLogger.Event_SavedMessagesInfos(channel.GuildId, channel.Id, toSave.Count());
             }
 

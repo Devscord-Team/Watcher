@@ -1,83 +1,51 @@
-﻿using Newtonsoft.Json;
-using System.Text;
-using Watcher.Runner.Providers;
+﻿using Microsoft.EntityFrameworkCore;
+using Watcher.Database;
+using Watcher.Database.Entities;
 
 namespace Watcher.Runner.Storage;
-public class MessagesStorage(IDateTimeProvider dateTimeProvider) : IMessagesStorage
+public class MessagesStorage(DatabaseContext databaseContext) : IMessagesStorage
 {
-    /// <summary>
-    /// json is temporary
-    /// todo: add database
-    /// </summary>
-    private const string MESSAGES_INFO_HISTORY_PATH = "MessagesInfoHistory.json";
-    private static readonly Lock obj = new();
-    private DateTime lastRefresh = default;
-    private MessageInfo[]? allMessagesCache;
-
-    public void SaveMessageInfo(MessageInfo message)
+    public async Task SaveMessage(ServerMessage message)
     {
-        var json = JsonConvert.SerializeObject(message);
-        var content = json + ",\r\n";
-
-        lock (obj)
-        {
-            File.AppendAllText(MESSAGES_INFO_HISTORY_PATH, content);
-        }
+        databaseContext.Messages.Add(message);
+        databaseContext.SaveChanges();
     }
 
-    public void SaveMessagesInfos(IEnumerable<MessageInfo> messages)
+    public async Task SaveMessages(IEnumerable<ServerMessage> messages)
     {
-        var fullText = new StringBuilder();
         foreach (var message in messages)
         {
-            var json = JsonConvert.SerializeObject(message);
-            var content = json + ",\r\n";
-            _ = fullText.Append(content);
-        }
+            if (databaseContext.Messages.Any(x => x.MessageId == message.MessageId && x.ChannelId == message.ChannelId))
+            {
+                continue;
+            }
 
-        lock (obj)
-        {
-            File.AppendAllText(MESSAGES_INFO_HISTORY_PATH, fullText.ToString());
+            databaseContext.Messages.Add(message);
+            await databaseContext.SaveChangesAsync();
         }
     }
 
-    public MessageInfo[] GetAllMessagesInfos(ulong? serverId = null, ulong? channelId = null, DateTime? fromSentAtUtc = null)
+    public async Task<MessageInfo[]> GetMessagesInfos(ulong? serverId = null, ulong? channelId = null, DateTime? fromSentAtUtc = null)
     {
-        var now = dateTimeProvider.GetUtcNow();
-        IEnumerable<MessageInfo> result;
-        if (this.lastRefresh > now.AddMinutes(-1))
-        {
-            result = this.allMessagesCache!;
-        }
-        else
-        {
-            if (!File.Exists(MESSAGES_INFO_HISTORY_PATH))
-            {
-                return [];
-            }
-
-            var jsonItems = File.ReadAllText(MESSAGES_INFO_HISTORY_PATH);
-            var json = $"[{jsonItems}]";
-            result = JsonConvert.DeserializeObject<IEnumerable<MessageInfo>>(json)!;
-            this.allMessagesCache = [.. result];
-            this.lastRefresh = dateTimeProvider.GetUtcNow();
-        }
+        var query = databaseContext.Messages.AsQueryable();
 
         if (serverId.HasValue)
         {
-            result = result.Where(x => x.ServerId == serverId.Value);
+            query = query.Where(x => x.ServerId == serverId.Value);
         }
 
         if (channelId.HasValue)
         {
-            result = result.Where(x => x.ChannelId == channelId.Value);
+            query = query.Where(x => x.ChannelId == channelId.Value);
         }
 
         if (fromSentAtUtc.HasValue)
         {
-            result = result.Where(x => x.SentAt >= fromSentAtUtc.Value);
+            query = query.Where(x => x.SentAtUtc >= fromSentAtUtc.Value);
         }
 
-        return [.. result];
+        var result = await query.ToArrayAsync();
+
+        return [.. result.Select(MessageInfo.FromServerMessage)];
     }
 }

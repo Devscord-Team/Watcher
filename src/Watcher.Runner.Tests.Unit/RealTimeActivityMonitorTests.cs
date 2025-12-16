@@ -26,7 +26,7 @@ public class RealTimeActivityMonitorTests
 
         this._now = new DateTime(2024, 6, 15, 12, 0, 0, DateTimeKind.Utc);
         _ = this._dateTimeProviderMock.Setup(x => x.GetUtcNow()).Returns(() => this._now);
-        _ = this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns([]);
+        _ = this._messagesStorageMock.Setup(x => x.GetMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns([]);
 
         _ = this._eventBusMock
             .Setup(x => x.Subscribe(It.IsAny<Action<MessageInfoReceivedEvent>>()))
@@ -51,7 +51,7 @@ public class RealTimeActivityMonitorTests
     private void SetupStorageMessages(params DateTime[] sentAtTimes)
     {
         var messages = sentAtTimes.Select(this.CreateMessage).ToArray();
-        _ = this._messagesStorageMock.Setup(x => x.GetAllMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns(messages);
+        _ = this._messagesStorageMock.Setup(x => x.GetMessagesInfos(It.IsAny<ulong?>(), It.IsAny<ulong?>(), It.IsAny<DateTime?>())).Returns(messages);
     }
 
     [Test]

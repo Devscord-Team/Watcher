@@ -21,20 +21,20 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
 
     public async Task Initialize() => await this.RefreshCache();
 
+    //todo - figure out how refresh should work, without multi downloads in same time
     public async Task RefreshCache()
     {
+        if (this.lastRefreshTime.HasValue && this.lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
+        {
+            return;
+        }
+
+        eventLogger.Event_AnomalyDetectorCacheRefreshStarted();
+        var now = this.GetCurrentTime();
+        var freshMessages = await storage.GetMessagesInfos(fromSentAtUtc: now.AddDays(-7 * HISTORICAL_WEEKS));
+
         lock (this.cacheLock)
         {
-            if (this.lastRefreshTime.HasValue && this.lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
-            {
-                return;
-            }
-
-            eventLogger.Event_AnomalyDetectorCacheRefreshStarted();
-
-            var now = this.GetCurrentTime();
-            var freshMessages = storage.GetAllMessagesInfos(fromSentAtUtc: now.AddDays(-7 * HISTORICAL_WEEKS));
-
             var messagesByChan = freshMessages
                 .Select(m => m.ChangeTimezone(this.cestTimezone))
                 .GroupBy(m => m.ChannelId)
@@ -54,7 +54,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
         await Task.CompletedTask;
     }
 
-    public AnomalyResult? ScanChannel(ulong channelId)
+    public async Task<AnomalyResult?> ScanChannel(ulong channelId)
     {
         eventLogger.Event_AnomalyDetectorScanChannelStarted(channelId);
 
@@ -73,7 +73,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
             return null;
         }
 
-        var currentCount = this.GetCurrentMessageCount(channelId, now);
+        var currentCount = await this.GetCurrentMessageCount(channelId, now);
 
         var result = this.IsAnomaly(currentCount, stats)
             ? new AnomalyResult(channelId, now, currentCount, stats.Average)
@@ -105,12 +105,10 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
             ));
     }
 
-    private int GetCurrentMessageCount(ulong channelId, DateTime now)
+    private Task<int> GetCurrentMessageCount(ulong channelId, DateTime now)
     {
         var windowStart = now.AddMinutes(-WINDOW_MINUTES);
-
-        var channelMessagesCount = this.GetChannelMessages(channelId, windowStart);
-        return channelMessagesCount;
+        return this.GetChannelMessages(channelId, windowStart);
     }
 
     private ChannelStats? GetStatsFromCache(StatKey key)
@@ -207,14 +205,9 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
     private DateTime GetCurrentTime()
         => TimeZoneInfo.ConvertTimeFromUtc(dateTimeProvider.GetUtcNow(), this.cestTimezone);
 
-    private int GetChannelMessages(ulong channelId, DateTime startDate)
+    private async Task<int> GetChannelMessages(ulong channelId, DateTime startDate)
     {
-        var freshMessages = storage.GetAllMessagesInfos();
-        var channelMessages = freshMessages
-            .Where(x => x.ChannelId == channelId)
-            .Select(m => m.ChangeTimezone(this.cestTimezone))
-            .Where(x => x.SentAt >= startDate);
-
-        return channelMessages.Count();
+        var freshMessages = await storage.GetMessagesInfos(channelId: channelId, fromSentAtUtc: startDate.ToUniversalTime());
+        return freshMessages.Count();
     }
 }
