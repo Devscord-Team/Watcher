@@ -19,15 +19,28 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
     private const double ANOMALY_THRESHOLD = 2.0;
     private const int MIN_MESSAGES_FOR_ANOMALY = 5;
 
+    private bool isReloadingCache = false;
+
     public async Task Initialize() => await this.RefreshCache();
 
     //todo - figure out how refresh should work, without multi downloads in same time
     public async Task RefreshCache()
     {
-        if (this.lastRefreshTime.HasValue && this.lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
+        if (isReloadingCache || this.lastRefreshTime.HasValue && this.lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
         {
             return;
         }
+
+        lock (this.cacheLock)
+        {
+            if (isReloadingCache)
+            {
+                return;
+            }
+
+            isReloadingCache = true;
+        }
+        
 
         eventLogger.Event_AnomalyDetectorCacheRefreshStarted();
         var now = this.GetCurrentTime();
@@ -35,6 +48,11 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
 
         lock (this.cacheLock)
         {
+            if (!isReloadingCache)
+            {
+                return;
+            }
+
             var messagesByChan = freshMessages
                 .Select(m => m.ChangeTimezone(this.cestTimezone))
                 .GroupBy(m => m.ChannelId)
@@ -49,9 +67,8 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
             this.lastRefreshTime = dateTimeProvider.GetUtcNow();
 
             eventLogger.Event_AnomalyDetectorCacheRefreshFinished();
+            isReloadingCache = false;
         }
-
-        await Task.CompletedTask;
     }
 
     public async Task<AnomalyResult?> ScanChannel(ulong channelId)
