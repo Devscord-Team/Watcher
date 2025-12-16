@@ -24,8 +24,5 @@ public class DatabaseContext : DbContext
 
         _ = modelBuilder.Entity<ServerMessage>()
             .HasKey(x => x.Id);
-
-        _ = modelBuilder.Entity<ServerMessage>()
-            .Property(x => x.Id).HasDefaultValueSql();
     }
 }
