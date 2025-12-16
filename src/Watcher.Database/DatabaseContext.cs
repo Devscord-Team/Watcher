@@ -15,6 +15,7 @@ public class DatabaseContext : DbContext, IDatabaseContext
     {
     }
 
+    //todo connection string in appsettings
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseNpgsql($"Host=localhost;Username=postgres;Database=Watcher");
 
