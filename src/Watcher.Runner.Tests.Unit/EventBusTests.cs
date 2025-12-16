@@ -115,7 +115,7 @@ public class EventBusTests
         subscription.Dispose();
 
         this._bus.Publish(new TestEvent());
-        await Task.Delay(100); // daj czas na potencjalne wywołanie
+        await Task.Delay(100);
 
         Assert.That(callCount, Is.EqualTo(1), "Handler should have been called only once before unsubscribe.");
     }
@@ -161,8 +161,6 @@ public class EventBusTests
         var subscription = this._bus.Subscribe<TestEvent>(_ => { });
         subscription.Dispose();
 
-        // Próba ponownego unsubscribe (lista pusta, ale klucz istnieje)
-        // Ten test pokazuje obecne zachowanie - może wymagać zmiany w implementacji
         Assert.DoesNotThrow(subscription.Dispose);
     }
 }
