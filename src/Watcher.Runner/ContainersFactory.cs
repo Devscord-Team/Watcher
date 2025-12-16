@@ -27,12 +27,6 @@ public static class ContainersFactory
             .RegisterRealTimeMonitors()
             .Build();
 
-        //Initialize
-        Task.WaitAll([
-            build.Resolve<IAnomalyDetector>().Initialize(), 
-            build.Resolve<IRealTimeActivityMonitor>().Initialize()
-        ]);
-
         return build;
     }
 

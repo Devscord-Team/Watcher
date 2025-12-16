@@ -1,6 +1,8 @@
 ﻿using Autofac;
 using Watcher.Runner;
+using Watcher.Runner.Domain.AnomalyDetection;
 using Watcher.Runner.Logging;
+using Watcher.Runner.Monitoring;
 
 using var container = ContainersFactory.Create();
 using var eventLogger = container.Resolve<IEventLogger>();
@@ -11,6 +13,12 @@ try
 
     var token = Environment.GetEnvironmentVariable("WATCHER_DISCORD_TOKEN")
         ?? throw new ArgumentNullException("Discord token is empty. Set WATCHER_DISCORD_TOKEN environment variable.");
+
+    //Initialize
+    await Task.WhenAll([
+        container.Resolve<IAnomalyDetector>().Initialize(),
+        container.Resolve<IRealTimeActivityMonitor>().Initialize()
+    ]);
 
     var discordRunner = container.Resolve<IDiscordRunner>();
     await discordRunner.Run(token);
