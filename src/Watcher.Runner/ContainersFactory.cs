@@ -79,6 +79,10 @@ public static class ContainersFactory
 
     private static ContainerBuilder RegisterStorage(this ContainerBuilder builder)
     {
+        _ = builder.RegisterType<DatabaseContextFactory>()
+            .As<IDatabaseContextFactory>()
+            .SingleInstance();
+
         _ = builder.RegisterType<MessagesStorage>()
             .As<IMessagesStorage>()
             .SingleInstance();

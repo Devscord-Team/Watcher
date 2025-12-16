@@ -3,18 +3,18 @@ using Watcher.Database;
 using Watcher.Database.Entities;
 
 namespace Watcher.Runner.Storage;
-public class MessagesStorage : IMessagesStorage
+public class MessagesStorage(IDatabaseContextFactory databaseContextFactory) : IMessagesStorage
 {
     public async Task SaveMessage(ServerMessage message)
     {
-        using var databaseContext = new DatabaseContext();
+        using var databaseContext = databaseContextFactory.Create();
         databaseContext.Messages.Add(message);
-        databaseContext.SaveChanges();
+        await databaseContext.SaveChangesAsync();
     }
 
     public async Task SaveMessages(IEnumerable<ServerMessage> messages)
     {
-        using var databaseContext = new DatabaseContext();
+        using var databaseContext = databaseContextFactory.Create();
         foreach (var message in messages)
         {
             if (databaseContext.Messages.Any(x => x.MessageId == message.MessageId && x.ChannelId == message.ChannelId))
@@ -30,7 +30,7 @@ public class MessagesStorage : IMessagesStorage
 
     public async Task<MessageInfo[]> GetMessagesInfos(ulong? serverId = null, ulong? channelId = null, DateTime? fromSentAtUtc = null)
     {
-        using var databaseContext = new DatabaseContext();
+        using var databaseContext = databaseContextFactory.Create();
         if (!await databaseContext.Messages.AnyAsync())
         {
             return [];

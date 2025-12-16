@@ -3,7 +3,7 @@ using Watcher.Database.Entities;
 
 namespace Watcher.Database;
 
-public class DatabaseContext : DbContext
+public class DatabaseContext : DbContext, IDatabaseContext
 {
     public DbSet<ServerMessage> Messages { get; set; }
 
