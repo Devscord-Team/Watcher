@@ -20,7 +20,7 @@ public class AnomalyDetector(IMessagesStorage storage, IEventLogger eventLogger,
 
     public async Task Initialize() => await this.RefreshCache();
 
-    //todo - figure out how refresh should work, without multi downloads in same time
+    //todo - figure out how refresh should work, without multi locks
     public async Task RefreshCache()
     {
         if (isReloadingCache || this.lastRefreshTime.HasValue && this.lastRefreshTime.Value > dateTimeProvider.GetUtcNow().AddHours(-1))
