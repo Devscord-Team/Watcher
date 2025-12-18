@@ -19,4 +19,8 @@
     <ProjectReference Include="..\Watcher.Database\Watcher.Database.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Background\" />
+  </ItemGroup>
+
 </Project>
