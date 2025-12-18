@@ -5,6 +5,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using Watcher.Database;
+using Watcher.Runner.Background;
 using Watcher.Runner.DiscordEventHandlers;
 using Watcher.Runner.Domain.AnomalyDetection;
 using Watcher.Runner.Logging;
@@ -25,6 +26,7 @@ public static class ContainersFactory
             .RegisterAnomalyDetection()
             .RegisterEvents()
             .RegisterRealTimeMonitors()
+            .RegisterBackground()
             .Build();
 
         return build;
@@ -115,6 +117,15 @@ public static class ContainersFactory
     {
         _ = builder.RegisterType<RealTimeActivityMonitor>()
             .As<IRealTimeActivityMonitor>()
+            .SingleInstance();
+
+        return builder;
+    }
+
+    private static ContainerBuilder RegisterBackground(this ContainerBuilder builder)
+    {
+        _ = builder.RegisterType<AnomalyChannelsScanner>()
+            .As<IBackground>()
             .SingleInstance();
 
         return builder;

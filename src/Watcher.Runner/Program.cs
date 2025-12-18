@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Watcher.Runner;
+using Watcher.Runner.Background;
 using Watcher.Runner.Domain.AnomalyDetection;
 using Watcher.Runner.Logging;
 using Watcher.Runner.Monitoring;
@@ -20,8 +21,12 @@ try
         container.Resolve<IRealTimeActivityMonitor>().Initialize()
     ]);
 
+    //todo auto restart when job is finished
+    var backgroundJobs = container.Resolve<IEnumerable<IBackground>>().Select(x => x.ExecuteAsync(CancellationToken.None)).ToArray();
+
     var discordRunner = container.Resolve<IDiscordRunner>();
     await discordRunner.Run(token);
+    await Task.WhenAll(backgroundJobs);
     await Task.Delay(-1);
 }
 catch (Exception exception)
