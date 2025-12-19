@@ -49,9 +49,12 @@ public class EventBusTests
         var allCompleted = Task.WhenAll(tcs1.Task, tcs2.Task);
         var completed = await Task.WhenAny(allCompleted, Task.Delay(1000));
 
-        Assert.That(completed, Is.EqualTo(allCompleted), "Not all handlers invoked within timeout.");
-        Assert.That(tcs1.Task.IsCompletedSuccessfully);
-        Assert.That(tcs2.Task.IsCompletedSuccessfully);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(completed, Is.EqualTo(allCompleted), "Not all handlers invoked within timeout.");
+            Assert.That(tcs1.Task.IsCompletedSuccessfully);
+            Assert.That(tcs2.Task.IsCompletedSuccessfully);
+        }
     }
 
     [Test]
@@ -90,8 +93,11 @@ public class EventBusTests
         this._bus.Publish(new TestEvent());
 
         var completed = await Task.WhenAny(otherTcs.Task, Task.Delay(1000));
-        Assert.That(completed, Is.EqualTo(otherTcs.Task), "Second handler was not invoked when the first handler threw.");
-        Assert.That(otherTcs.Task.IsCompletedSuccessfully);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(completed, Is.EqualTo(otherTcs.Task), "Second handler was not invoked when the first handler threw.");
+            Assert.That(otherTcs.Task.IsCompletedSuccessfully);
+        }
     }
 
     [Test]
